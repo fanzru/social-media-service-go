@@ -1,0 +1,185 @@
+openapi: 3.0.3
+info:
+  title: Health Check API
+  description: Health check endpoints for monitoring and Kubernetes probes
+  version: 1.0.0
+  contact:
+    name: Social Media Service Team
+    email: hi@fanzru.dev
+
+servers:
+  - url: http://localhost:8080
+    description: Development server
+
+paths:
+  /health:
+    get:
+      summary: Comprehensive health check
+      description: Returns detailed health status of all services
+      tags:
+        - Health
+      responses:
+        "200":
+          description: All services are healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        "503":
+          description: Service unavailable - some services are unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+      security: []
+
+  /health/live:
+    get:
+      summary: Liveness probe
+      description: Kubernetes liveness probe - checks if the service is alive
+      tags:
+        - Health
+      responses:
+        "200":
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LivenessResponse"
+      security: []
+
+  /health/ready:
+    get:
+      summary: Readiness probe
+      description: Kubernetes readiness probe - checks if the service is ready to accept traffic
+      tags:
+        - Health
+      responses:
+        "200":
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+        "503":
+          description: Service is not ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+      security: []
+
+components:
+  schemas:
+    HealthStatus:
+      type: string
+      enum:
+        - healthy
+        - unhealthy
+        - degraded
+      description: Health status of a service
+
+    HealthCheck:
+      type: object
+      required:
+        - service
+        - status
+        - timestamp
+        - duration
+      properties:
+        service:
+          type: string
+          description: Name of the service being checked
+          example: "database"
+        status:
+          $ref: "#/components/schemas/HealthStatus"
+        message:
+          type: string
+          description: Additional message about the health status
+          example: "Database connection is healthy"
+        timestamp:
+          type: string
+          format: date-time
+          description: When the check was performed
+          example: "2025-10-26T14:01:36Z"
+        duration:
+          type: string
+          description: How long the check took
+          example: "500μs"
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+        - version
+        - uptime
+        - checks
+      properties:
+        status:
+          $ref: "#/components/schemas/HealthStatus"
+          description: Overall health status
+        timestamp:
+          type: string
+          format: date-time
+          description: When the health check was performed
+          example: "2025-10-26T14:01:36Z"
+        version:
+          type: string
+          description: Application version
+          example: "1.0.0"
+        uptime:
+          type: string
+          description: Application uptime
+          example: "1h30m45s"
+        checks:
+          type: array
+          items:
+            $ref: "#/components/schemas/HealthCheck"
+          description: Individual service health checks
+
+    LivenessResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+        - service
+      properties:
+        status:
+          type: string
+          enum: ["alive"]
+          description: Liveness status
+        timestamp:
+          type: string
+          format: date-time
+          description: When the check was performed
+          example: "2025-10-26T14:01:36Z"
+        service:
+          type: string
+          description: Service name
+          example: "social-media-service"
+
+    ReadinessResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+        - service
+        - health
+      properties:
+        status:
+          type: string
+          enum: ["ready", "not ready"]
+          description: Readiness status
+        timestamp:
+          type: string
+          format: date-time
+          description: When the check was performed
+          example: "2025-10-26T14:01:36Z"
+        service:
+          type: string
+          description: Service name
+          example: "social-media-service"
+        health:
+          $ref: "#/components/schemas/HealthStatus"
+          description: Overall health status

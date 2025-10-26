@@ -1,0 +1,245 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "contact": {
+      "email": "hi@fanzru.dev",
+      "name": "Social Media Service Team"
+    },
+    "description": "Health check endpoints for monitoring and Kubernetes probes",
+    "title": "Health Check API",
+    "version": "1.0.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "All services are healthy",
+            "schema": {
+              "$ref": "#/definitions/HealthResponse"
+            }
+          },
+          "503": {
+            "description": "Service unavailable - some services are unhealthy",
+            "schema": {
+              "$ref": "#/definitions/HealthResponse"
+            }
+          }
+        },
+        "security": [],
+        "tags": [
+          "Health"
+        ],
+        "description": "Returns detailed health status of all services",
+        "summary": "Comprehensive health check"
+      }
+    },
+    "/health/live": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Service is alive",
+            "schema": {
+              "$ref": "#/definitions/LivenessResponse"
+            }
+          }
+        },
+        "security": [],
+        "tags": [
+          "Health"
+        ],
+        "description": "Kubernetes liveness probe - checks if the service is alive",
+        "summary": "Liveness probe"
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Service is ready",
+            "schema": {
+              "$ref": "#/definitions/ReadinessResponse"
+            }
+          },
+          "503": {
+            "description": "Service is not ready",
+            "schema": {
+              "$ref": "#/definitions/ReadinessResponse"
+            }
+          }
+        },
+        "security": [],
+        "tags": [
+          "Health"
+        ],
+        "description": "Kubernetes readiness probe - checks if the service is ready to accept traffic",
+        "summary": "Readiness probe"
+      }
+    }
+  },
+  "definitions": {
+    "HealthCheck": {
+      "properties": {
+        "duration": {
+          "description": "How long the check took",
+          "example": "500μs",
+          "type": "string"
+        },
+        "message": {
+          "description": "Additional message about the health status",
+          "example": "Database connection is healthy",
+          "type": "string"
+        },
+        "service": {
+          "description": "Name of the service being checked",
+          "example": "database",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/HealthStatus"
+        },
+        "timestamp": {
+          "description": "When the check was performed",
+          "example": "2025-10-26T14:01:36Z",
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service",
+        "status",
+        "timestamp",
+        "duration"
+      ],
+      "type": "object"
+    },
+    "HealthResponse": {
+      "properties": {
+        "checks": {
+          "description": "Individual service health checks",
+          "items": {
+            "$ref": "#/definitions/HealthCheck"
+          },
+          "type": "array"
+        },
+        "status": {
+          "$ref": "#/definitions/HealthStatus",
+          "description": "Overall health status"
+        },
+        "timestamp": {
+          "description": "When the health check was performed",
+          "example": "2025-10-26T14:01:36Z",
+          "format": "date-time",
+          "type": "string"
+        },
+        "uptime": {
+          "description": "Application uptime",
+          "example": "1h30m45s",
+          "type": "string"
+        },
+        "version": {
+          "description": "Application version",
+          "example": "1.0.0",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "timestamp",
+        "version",
+        "uptime",
+        "checks"
+      ],
+      "type": "object"
+    },
+    "HealthStatus": {
+      "description": "Health status of a service",
+      "enum": [
+        "healthy",
+        "unhealthy",
+        "degraded"
+      ],
+      "type": "string"
+    },
+    "LivenessResponse": {
+      "properties": {
+        "service": {
+          "description": "Service name",
+          "example": "social-media-service",
+          "type": "string"
+        },
+        "status": {
+          "description": "Liveness status",
+          "enum": [
+            "alive"
+          ],
+          "type": "string"
+        },
+        "timestamp": {
+          "description": "When the check was performed",
+          "example": "2025-10-26T14:01:36Z",
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "timestamp",
+        "service"
+      ],
+      "type": "object"
+    },
+    "ReadinessResponse": {
+      "properties": {
+        "health": {
+          "$ref": "#/definitions/HealthStatus",
+          "description": "Overall health status"
+        },
+        "service": {
+          "description": "Service name",
+          "example": "social-media-service",
+          "type": "string"
+        },
+        "status": {
+          "description": "Readiness status",
+          "enum": [
+            "ready",
+            "not ready"
+          ],
+          "type": "string"
+        },
+        "timestamp": {
+          "description": "When the check was performed",
+          "example": "2025-10-26T14:01:36Z",
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "timestamp",
+        "service",
+        "health"
+      ],
+      "type": "object"
+    }
+  },
+  "x-components": {}
+}

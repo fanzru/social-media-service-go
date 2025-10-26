@@ -1,0 +1,32 @@
+# Server Configuration
+SERVER_HOST=localhost
+SERVER_PORT=8080
+
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=password
+DB_NAME=social_media
+DB_SSL_MODE=disable
+
+# Database Logging Configuration
+DB_LOG_QUERIES=true
+DB_LOG_SLOW_QUERIES=true
+DB_SLOW_QUERY_THRESHOLD=100
+
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_EXPIRATION=24
+
+# File Storage Configuration
+UPLOAD_PATH=./uploads
+MAX_FILE_SIZE=104857600
+ALLOWED_EXTENSIONS=.png,.jpg,.jpeg,.bmp
+
+# Logging Configuration
+LOG_LEVEL=INFO
+LOG_FORMAT=json
+
+# Development/Production Environment
+ENV=development

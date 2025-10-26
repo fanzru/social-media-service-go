@@ -1,0 +1,395 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "contact": {
+      "email": "hi@fanzru.dev",
+      "name": "Social Media Service Team"
+    },
+    "description": "API for social media service",
+    "title": "Social Media Service API",
+    "version": "1.0.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/api/account/login": {
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LoginRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request - validation errors",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid credentials",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          }
+        },
+        "tags": [
+          "Account"
+        ],
+        "description": "Authenticate user with email and password",
+        "summary": "Login to account"
+      }
+    },
+    "/api/account/profile": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Profile retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid credentials",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ],
+        "description": "Get the profile of the authenticated user",
+        "summary": "Get account profile"
+      }
+    },
+    "/api/account/register": {
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RegisterRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Account created successfully",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request - validation errors",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "409": {
+            "description": "Conflict - email already exists",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          }
+        },
+        "tags": [
+          "Account"
+        ],
+        "description": "Create a new user account with name, email, and password",
+        "summary": "Register a new account"
+      }
+    },
+    "/health": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "All services are healthy",
+            "schema": {
+              "$ref": "#/definitions/HealthResponse"
+            }
+          },
+          "503": {
+            "description": "Service unavailable - some services are unhealthy",
+            "schema": {
+              "$ref": "#/definitions/HealthResponse"
+            }
+          }
+        },
+        "security": [],
+        "tags": [
+          "Health"
+        ],
+        "description": "Returns detailed health status of all services",
+        "summary": "Comprehensive health check"
+      }
+    },
+    "/health/live": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Service is alive",
+            "schema": {
+              "$ref": "#/definitions/LivenessResponse"
+            }
+          }
+        },
+        "security": [],
+        "tags": [
+          "Health"
+        ],
+        "description": "Kubernetes liveness probe - checks if the service is alive",
+        "summary": "Liveness probe"
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Service is ready",
+            "schema": {
+              "$ref": "#/definitions/ReadinessResponse"
+            }
+          },
+          "503": {
+            "description": "Service is not ready",
+            "schema": {
+              "$ref": "#/definitions/ReadinessResponse"
+            }
+          }
+        },
+        "security": [],
+        "tags": [
+          "Health"
+        ],
+        "description": "Kubernetes readiness probe - checks if the service is ready to accept traffic",
+        "summary": "Readiness probe"
+      }
+    }
+  },
+  "definitions": {
+    "Account": {
+      "properties": {
+        "created_at": {
+          "example": "2024-01-01T00:00:00Z",
+          "format": "date-time",
+          "type": "string"
+        },
+        "deleted_at": {
+          "example": null,
+          "format": "date-time",
+          "type": "string",
+          "x-nullable": true
+        },
+        "email": {
+          "example": "john@example.com",
+          "format": "email",
+          "type": "string"
+        },
+        "id": {
+          "example": 1,
+          "format": "int64",
+          "type": "integer"
+        },
+        "name": {
+          "example": "John Doe",
+          "type": "string"
+        },
+        "updated_at": {
+          "example": "2024-01-01T00:00:00Z",
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "LoginRequest": {
+      "properties": {
+        "email": {
+          "example": "john@example.com",
+          "format": "email",
+          "type": "string"
+        },
+        "password": {
+          "example": "password123",
+          "type": "string"
+        }
+      },
+      "required": [
+        "email",
+        "password"
+      ],
+      "type": "object"
+    },
+    "LoginResponse": {
+      "properties": {
+        "access_token": {
+          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+          "type": "string"
+        },
+        "account": {
+          "$ref": "#/definitions/Account"
+        },
+        "expires_in": {
+          "example": 3600,
+          "format": "int64",
+          "type": "integer"
+        },
+        "token_type": {
+          "example": "Bearer",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "RegisterRequest": {
+      "properties": {
+        "email": {
+          "example": "john@example.com",
+          "format": "email",
+          "type": "string"
+        },
+        "name": {
+          "example": "John Doe",
+          "maxLength": 100,
+          "minLength": 2,
+          "type": "string"
+        },
+        "password": {
+          "example": "password123",
+          "minLength": 8,
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "email",
+        "password"
+      ],
+      "type": "object"
+    },
+    "StandardResponse": {
+      "properties": {
+        "code": {
+          "enum": [
+            "SUCCESS",
+            "FAILED",
+            "BAD_REQUEST",
+            "UNAUTHORIZED",
+            "FORBIDDEN",
+            "NOT_FOUND",
+            "CONFLICT",
+            "INTERNAL_SERVER_ERROR"
+          ],
+          "example": "SUCCESS",
+          "type": "string"
+        },
+        "data": {
+          "description": "Response data (varies by endpoint)",
+          "type": "object"
+        },
+        "errors": {
+          "example": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "message": {
+          "example": "Operation completed successfully",
+          "type": "string"
+        },
+        "requestId": {
+          "example": "req_123456789",
+          "type": "string"
+        },
+        "serverTime": {
+          "example": "2024-01-01T00:00:00Z",
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "securityDefinitions": {
+    "bearerAuth": {
+      "description": "JWT token obtained from login endpoint",
+      "in": "header",
+      "name": "Authorization",
+      "type": "apiKey"
+    }
+  },
+  "x-components": {},
+  "components": {
+    "schemas": {}
+  },
+  "tags": []
+}
