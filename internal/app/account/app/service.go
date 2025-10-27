@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
@@ -12,31 +13,31 @@ import (
 
 // Service interface defines the contract for account business logic
 type Service interface {
-	Register(req *account.RegisterRequest) (*account.Account, error)
-	Login(req *account.LoginRequest) (*account.LoginResponse, error)
-	GetAccountByID(id int64) (*account.Account, error)
-	UpdateAccount(acc *account.Account) error
-	DeleteAccount(id int64) error
+	Register(ctx context.Context, req *account.RegisterRequest) (*account.Account, error)
+	Login(ctx context.Context, req *account.LoginRequest) (*account.LoginResponse, error)
+	GetAccountByID(ctx context.Context, id int64) (*account.Account, error)
+	UpdateAccount(ctx context.Context, acc *account.Account) error
+	DeleteAccount(ctx context.Context, id int64) error
 }
 
 // service implements the Service interface
 type service struct {
-	repo      repo.Repository
+	repo       repo.Repository
 	jwtService *jwt.Service
 }
 
 // NewService creates a new account service
 func NewService(repo repo.Repository, jwtService *jwt.Service) Service {
 	return &service{
-		repo:      repo,
+		repo:       repo,
 		jwtService: jwtService,
 	}
 }
 
 // Register creates a new account
-func (s *service) Register(req *account.RegisterRequest) (*account.Account, error) {
+func (s *service) Register(ctx context.Context, req *account.RegisterRequest) (*account.Account, error) {
 	// Check if email already exists
-	existingAccount, err := s.repo.GetByEmail(req.Email)
+	existingAccount, err := s.repo.GetByEmail(ctx, req.Email)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, fmt.Errorf("failed to check existing email: %w", err)
 	}
@@ -57,7 +58,7 @@ func (s *service) Register(req *account.RegisterRequest) (*account.Account, erro
 		Password: string(hashedPassword),
 	}
 
-	err = s.repo.Create(acc)
+	err = s.repo.Create(ctx, acc)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create account: %w", err)
 	}
@@ -66,9 +67,9 @@ func (s *service) Register(req *account.RegisterRequest) (*account.Account, erro
 }
 
 // Login authenticates a user
-func (s *service) Login(req *account.LoginRequest) (*account.LoginResponse, error) {
+func (s *service) Login(ctx context.Context, req *account.LoginRequest) (*account.LoginResponse, error) {
 	// Get account by email
-	acc, err := s.repo.GetByEmail(req.Email)
+	acc, err := s.repo.GetByEmail(ctx, req.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("invalid credentials")
@@ -97,17 +98,16 @@ func (s *service) Login(req *account.LoginRequest) (*account.LoginResponse, erro
 }
 
 // GetAccountByID retrieves an account by ID
-func (s *service) GetAccountByID(id int64) (*account.Account, error) {
-	return s.repo.GetByID(id)
+func (s *service) GetAccountByID(ctx context.Context, id int64) (*account.Account, error) {
+	return s.repo.GetByID(ctx, id)
 }
 
 // UpdateAccount updates an existing account
-func (s *service) UpdateAccount(acc *account.Account) error {
-	return s.repo.Update(acc)
+func (s *service) UpdateAccount(ctx context.Context, acc *account.Account) error {
+	return s.repo.Update(ctx, acc)
 }
 
 // DeleteAccount soft deletes an account
-func (s *service) DeleteAccount(id int64) error {
-	return s.repo.SoftDelete(id)
+func (s *service) DeleteAccount(ctx context.Context, id int64) error {
+	return s.repo.SoftDelete(ctx, id)
 }
-

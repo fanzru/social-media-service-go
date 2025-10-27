@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"time"
 
 	"github.com/fanzru/social-media-service-go/internal/app/health"
@@ -19,14 +20,14 @@ func NewService(repo health.HealthRepository) *Service {
 }
 
 // GetHealth returns the overall health status
-func (s *Service) GetHealth() health.HealthResponse {
+func (s *Service) GetHealth(ctx context.Context) health.HealthResponse {
 	startTime := time.Now()
 
 	// Perform health checks
 	checks := []health.HealthCheck{
-		s.CheckDatabase(),
-		s.CheckRedis(),
-		s.CheckExternalAPI(),
+		s.CheckDatabase(ctx),
+		s.CheckRedis(ctx),
+		s.CheckExternalAPI(ctx),
 	}
 
 	// Determine overall status
@@ -50,9 +51,9 @@ func (s *Service) GetHealth() health.HealthResponse {
 }
 
 // CheckDatabase checks database connectivity
-func (s *Service) CheckDatabase() health.HealthCheck {
+func (s *Service) CheckDatabase(ctx context.Context) health.HealthCheck {
 	start := time.Now()
-	err := s.repo.PingDatabase()
+	err := s.repo.PingDatabase(ctx)
 	duration := time.Since(start)
 
 	check := health.HealthCheck{
@@ -73,9 +74,9 @@ func (s *Service) CheckDatabase() health.HealthCheck {
 }
 
 // CheckRedis checks Redis connectivity
-func (s *Service) CheckRedis() health.HealthCheck {
+func (s *Service) CheckRedis(ctx context.Context) health.HealthCheck {
 	start := time.Now()
-	err := s.repo.PingRedis()
+	err := s.repo.PingRedis(ctx)
 	duration := time.Since(start)
 
 	check := health.HealthCheck{
@@ -96,9 +97,9 @@ func (s *Service) CheckRedis() health.HealthCheck {
 }
 
 // CheckExternalAPI checks external API connectivity
-func (s *Service) CheckExternalAPI() health.HealthCheck {
+func (s *Service) CheckExternalAPI(ctx context.Context) health.HealthCheck {
 	start := time.Now()
-	err := s.repo.PingExternalAPI()
+	err := s.repo.PingExternalAPI(ctx)
 	duration := time.Since(start)
 
 	check := health.HealthCheck{

@@ -1,2 +1,64 @@
+# Environment files
 .env
+*.env
+sample-env
 
+# Binaries / Executables
+main
+server
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Go workspace file
+go.work
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+data/influxdb/
+data/grafana/grafana.db
+data/graphite/
+
+# Logs
+logs/
+*.log
+
+# Docker volumes
+data/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Coverage reports
+coverage.html
+coverage.xml
+
+# Build artifacts
+*.o
+*.a

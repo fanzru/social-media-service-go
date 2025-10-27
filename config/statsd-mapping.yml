@@ -1,0 +1,51 @@
+mappings:
+  # API Metrics
+  - match: "app.API_IN.statusCode"
+    name: "http_requests_total"
+    labels:
+      group: "API_IN"
+      error_code: "${1}"
+      entity: "${2}"
+      http_status: "${3}"
+    match_type: regex
+    regex: "app\\.API_IN\\.statusCode;group=API_IN;errorCode=([^;]+);entity=([^;]+);HTTPStatus=([^;]+)"
+
+  - match: "app.API_IN.execTime"
+    name: "http_request_duration_seconds"
+    labels:
+      group: "API_IN"
+      entity: "${1}"
+    match_type: regex
+    regex: "app\\.API_IN\\.execTime;group=API_IN;entity=([^;]+)"
+
+  # Database Metrics
+  - match: "app.DB.statusCode"
+    name: "db_queries_total"
+    labels:
+      group: "DB"
+      error_code: "${1}"
+      entity: "${2}"
+    match_type: regex
+    regex: "app\\.DB\\.statusCode;group=DB;errorCode=([^;]+);entity=([^;]+)"
+
+  - match: "app.DB.execTime"
+    name: "db_query_duration_seconds"
+    labels:
+      group: "DB"
+      entity: "${1}"
+    match_type: regex
+    regex: "app\\.DB\\.execTime;group=DB;entity=([^;]+)"
+
+  # Simple metrics (fallback)
+  - match: "app.*"
+    name: "statsd_metric"
+    labels:
+      metric_name: "${1}"
+    match_type: regex
+    regex: "app\\.(.+)"
+
+  # Default mapping for any metric
+  - match: "*"
+    name: "statsd_metric"
+    labels:
+      metric_name: "${1}"

@@ -55,7 +55,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Register account
-	acc, err := h.service.Register(&req)
+	acc, err := h.service.Register(ctx, &req)
 	if err != nil {
 		if err.Error() == "email already exists" {
 			response.Conflict(ctx, "Email already exists", []string{err.Error()}).Send(w, http.StatusConflict)
@@ -87,7 +87,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Login account
-	loginResp, err := h.service.Login(&req)
+	loginResp, err := h.service.Login(ctx, &req)
 	if err != nil {
 		if err.Error() == "invalid credentials" {
 			response.Unauthorized(ctx, "Invalid credentials", []string{err.Error()}).Send(w, http.StatusUnauthorized)
@@ -113,7 +113,7 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get account by ID
-	acc, err := h.service.GetAccountByID(userID)
+	acc, err := h.service.GetAccountByID(ctx, userID)
 	if err != nil {
 		response.InternalServerError(ctx, "Failed to get account profile", []string{err.Error()}).Send(w, http.StatusInternalServerError)
 		return

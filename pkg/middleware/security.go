@@ -36,13 +36,13 @@ type SecurityRequirement struct {
 // ParseOpenAPISpec parses OpenAPI specification files and extracts security requirements
 func ParseOpenAPISpec(specDir string) ([]SecurityRequirement, error) {
 	var requirements []SecurityRequirement
-	
+
 	// Read all YAML files in the spec directory
 	files, err := filepath.Glob(filepath.Join(specDir, "*.yaml"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read spec directory: %w", err)
 	}
-	
+
 	for _, file := range files {
 		// Convert YAML to JSON first (simplified approach)
 		// In production, you might want to use a proper YAML parser
@@ -50,13 +50,13 @@ func ParseOpenAPISpec(specDir string) ([]SecurityRequirement, error) {
 		if err != nil {
 			continue // Skip files that can't be read
 		}
-		
+
 		// For now, let's manually define the security requirements
 		// This is a simplified approach - in production you'd parse YAML properly
 		reqs := extractSecurityFromYAML(string(yamlContent))
 		requirements = append(requirements, reqs...)
 	}
-	
+
 	return requirements, nil
 }
 
@@ -64,31 +64,31 @@ func ParseOpenAPISpec(specDir string) ([]SecurityRequirement, error) {
 // This is a simplified implementation - in production use proper YAML parsing
 func extractSecurityFromYAML(content string) []SecurityRequirement {
 	var requirements []SecurityRequirement
-	
+
 	// Simple pattern matching for security requirements
 	lines := strings.Split(content, "\n")
 	var currentPath string
 	var currentMethod string
-	
+
 	fmt.Printf("DEBUG: Parsing YAML content with %d lines\n", len(lines))
-	
+
 	for i, line := range lines {
 		line = strings.TrimSpace(line)
-		
+
 		// Detect path
 		if strings.HasPrefix(line, "  /") && strings.HasSuffix(line, ":") {
 			currentPath = strings.TrimSpace(strings.TrimSuffix(line, ":"))
 			fmt.Printf("DEBUG: Found path: %s\n", currentPath)
 		}
-		
+
 		// Detect HTTP method
-		if strings.HasPrefix(line, "    ") && (strings.Contains(line, "get:") || 
-			strings.Contains(line, "post:") || strings.Contains(line, "put:") || 
+		if strings.HasPrefix(line, "    ") && (strings.Contains(line, "get:") ||
+			strings.Contains(line, "post:") || strings.Contains(line, "put:") ||
 			strings.Contains(line, "delete:") || strings.Contains(line, "patch:")) {
 			currentMethod = strings.TrimSuffix(strings.TrimSpace(line), ":")
 			fmt.Printf("DEBUG: Found method: %s\n", currentMethod)
 		}
-		
+
 		// Detect security requirement
 		if strings.Contains(line, "bearerAuth:") {
 			fmt.Printf("DEBUG: Found bearerAuth at line %d: %s\n", i+1, line)
@@ -105,7 +105,7 @@ func extractSecurityFromYAML(content string) []SecurityRequirement {
 			}
 		}
 	}
-	
+
 	return requirements
 }
 
@@ -115,9 +115,9 @@ func LoadSecurityRequirements(specDir string) (map[string]bool, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	securityMap := make(map[string]bool)
-	
+
 	// Debug: print all requirements
 	fmt.Printf("DEBUG: Found %d security requirements:\n", len(requirements))
 	for _, req := range requirements {
@@ -125,6 +125,6 @@ func LoadSecurityRequirements(specDir string) (map[string]bool, error) {
 		securityMap[key] = req.RequiresAuth
 		fmt.Printf("  - %s: %t\n", key, req.RequiresAuth)
 	}
-	
+
 	return securityMap, nil
 }

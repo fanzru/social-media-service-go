@@ -1,6 +1,7 @@
 package account
 
 import (
+	"context"
 	"time"
 )
 
@@ -42,6 +43,24 @@ type StandardResponse struct {
 	Message    string      `json:"message"`
 	Errors     []string    `json:"errors,omitempty"`
 	ServerTime string      `json:"serverTime"`
-	RequestID  string      `json:"requestId"`
 	Data       interface{} `json:"data,omitempty"`
+}
+
+// AccountRepository defines the interface for account data access
+type AccountRepository interface {
+	Create(ctx context.Context, acc *Account) error
+	GetByID(ctx context.Context, id int64) (*Account, error)
+	GetByEmail(ctx context.Context, email string) (*Account, error)
+	Update(ctx context.Context, acc *Account) error
+	Delete(ctx context.Context, id int64) error
+	SoftDelete(ctx context.Context, id int64) error
+}
+
+// AccountService defines the interface for account business logic
+type AccountService interface {
+	Register(ctx context.Context, req *RegisterRequest) (*Account, error)
+	Login(ctx context.Context, req *LoginRequest) (*LoginResponse, error)
+	GetAccountByID(ctx context.Context, id int64) (*Account, error)
+	UpdateAccount(ctx context.Context, acc *Account) error
+	DeleteAccount(ctx context.Context, id int64) error
 }

@@ -10,6 +10,7 @@ type Config struct {
 	Database DatabaseConfig
 	JWT      JWTConfig
 	Storage  StorageConfig
+	StatsD   StatsDConfig
 }
 
 // ServerConfig holds server configuration
@@ -39,9 +40,30 @@ type JWTConfig struct {
 
 // StorageConfig holds file storage configuration
 type StorageConfig struct {
-	UploadPath  string
 	MaxSize     int64 // in bytes
 	AllowedExts []string
+
+	// S3 Configuration
+	S3Region          string
+	S3Bucket          string
+	S3AccessKeyID     string
+	S3SecretAccessKey string
+	S3Endpoint        string
+	S3ImageBaseURL    string
+
+	// Image Processing Configuration
+	ImageResizeWidth  int
+	ImageResizeHeight int
+	ImageQuality      int
+}
+
+// StatsDConfig holds StatsD configuration
+type StatsDConfig struct {
+	Host     string
+	Port     int
+	Prefix   string
+	Sampling float64
+	Enabled  bool
 }
 
 // Load loads configuration from environment variables
@@ -67,9 +89,28 @@ func Load() *Config {
 			Expiration: env.GetInt("JWT_EXPIRATION", 24),
 		},
 		Storage: StorageConfig{
-			UploadPath:  env.GetString("UPLOAD_PATH", "./uploads"),
 			MaxSize:     env.GetInt64("MAX_FILE_SIZE", 104857600), // 100MB
 			AllowedExts: env.GetStringSlice("ALLOWED_EXTENSIONS", []string{".png", ".jpg", ".jpeg", ".bmp"}),
+
+			// S3 Configuration
+			S3Region:          env.GetString("S3_REGION", "auto"),
+			S3Bucket:          env.GetString("S3_BUCKET", "social-media"),
+			S3AccessKeyID:     env.GetString("S3_ACCESS_KEY_ID", ""),
+			S3SecretAccessKey: env.GetString("S3_SECRET_ACCESS_KEY", ""),
+			S3Endpoint:        env.GetString("S3_ENDPOINT", ""),
+			S3ImageBaseURL:    env.GetString("S3_IMAGE_BASE_URL", ""),
+
+			// Image Processing Configuration
+			ImageResizeWidth:  env.GetInt("IMAGE_RESIZE_WIDTH", 600),
+			ImageResizeHeight: env.GetInt("IMAGE_RESIZE_HEIGHT", 600),
+			ImageQuality:      env.GetInt("IMAGE_QUALITY", 85),
+		},
+		StatsD: StatsDConfig{
+			Host:     env.GetString("STATSD_HOST", "localhost"),
+			Port:     env.GetInt("STATSD_PORT", 8125),
+			Prefix:   env.GetString("STATSD_PREFIX", "social_media"),
+			Sampling: env.GetFloat64("STATSD_SAMPLING", 1.0),
+			Enabled:  env.GetBool("STATSD_ENABLED", true),
 		},
 	}
 }

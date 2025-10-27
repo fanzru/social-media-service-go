@@ -1,0 +1,534 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "contact": {
+      "email": "hi@fanzru.dev",
+      "name": "Social Media Service Team"
+    },
+    "description": "API for managing social media posts",
+    "title": "Post API",
+    "version": "1.0.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/api/posts": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "description": "Cursor for pagination",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "default": 20,
+            "description": "Number of posts to return (max 100)",
+            "in": "query",
+            "maximum": 100,
+            "minimum": 1,
+            "name": "limit",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Posts retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          }
+        },
+        "tags": [
+          "Posts"
+        ],
+        "description": "Get all posts sorted by comment count with pagination",
+        "summary": "Get all posts"
+      },
+      "post": {
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "formData",
+            "maxLength": 1000,
+            "minLength": 1,
+            "name": "caption",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "description": "Image file (PNG, JPG, JPEG, BMP)",
+            "format": "binary",
+            "in": "formData",
+            "name": "image",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Post created successfully",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request - validation errors",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid credentials",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "413": {
+            "description": "Payload too large - image too big",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Posts"
+        ],
+        "description": "Create a new social media post with image upload",
+        "summary": "Create a new post"
+      }
+    },
+    "/api/posts/user/{userId}": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "description": "User ID",
+            "format": "int64",
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "description": "Cursor for pagination",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "default": 20,
+            "description": "Number of posts to return (max 100)",
+            "in": "query",
+            "maximum": 100,
+            "minimum": 1,
+            "name": "limit",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User posts retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          }
+        },
+        "tags": [
+          "Posts"
+        ],
+        "description": "Get all posts by a specific user",
+        "summary": "Get user posts"
+      }
+    },
+    "/api/posts/{id}": {
+      "delete": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "description": "Post ID",
+            "format": "int64",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post deleted successfully",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid credentials",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "403": {
+            "description": "Forbidden - not the post creator",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "404": {
+            "description": "Post not found",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Posts"
+        ],
+        "description": "Delete a post (only the creator can delete)",
+        "summary": "Delete post"
+      },
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "description": "Post ID",
+            "format": "int64",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "404": {
+            "description": "Post not found",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          }
+        },
+        "tags": [
+          "Posts"
+        ],
+        "description": "Get a specific post by its ID",
+        "summary": "Get post by ID"
+      },
+      "put": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "description": "Post ID",
+            "format": "int64",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdatePostRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post updated successfully",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request - validation errors",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid credentials",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "403": {
+            "description": "Forbidden - not the post creator",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "404": {
+            "description": "Post not found",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Posts"
+        ],
+        "description": "Update a post (only the creator can update)",
+        "summary": "Update post"
+      }
+    }
+  },
+  "definitions": {
+    "Post": {
+      "properties": {
+        "caption": {
+          "example": "Beautiful sunset today! 🌅",
+          "type": "string"
+        },
+        "comment_count": {
+          "example": 5,
+          "format": "int64",
+          "type": "integer"
+        },
+        "comments": {
+          "description": "Last 2 comments on the post",
+          "items": {
+            "properties": {
+              "content": {
+                "example": "Great post! Love the sunset 🌅",
+                "type": "string"
+              },
+              "created_at": {
+                "example": "2024-01-01T00:00:00Z",
+                "format": "date-time",
+                "type": "string"
+              },
+              "creator_name": {
+                "example": "Jane Smith",
+                "type": "string"
+              },
+              "id": {
+                "example": 1,
+                "format": "int64",
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          },
+          "maxItems": 2,
+          "type": "array"
+        },
+        "created_at": {
+          "example": "2024-01-01T00:00:00Z",
+          "format": "date-time",
+          "type": "string"
+        },
+        "creator_id": {
+          "example": 1,
+          "format": "int64",
+          "type": "integer"
+        },
+        "creator_name": {
+          "example": "John Doe",
+          "type": "string"
+        },
+        "deleted_at": {
+          "example": null,
+          "format": "date-time",
+          "type": "string",
+          "x-nullable": true
+        },
+        "id": {
+          "example": 1,
+          "format": "int64",
+          "type": "integer"
+        },
+        "image_path": {
+          "example": "post_1640995200000000000.jpg",
+          "type": "string"
+        },
+        "image_url": {
+          "example": "https://social-media-images.s3.amazonaws.com/post_1640995200000000000.jpg",
+          "type": "string"
+        },
+        "updated_at": {
+          "example": "2024-01-01T00:00:00Z",
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "PostListResponse": {
+      "properties": {
+        "cursor": {
+          "description": "Cursor for next page",
+          "example": "10",
+          "type": "string",
+          "x-nullable": true
+        },
+        "has_more": {
+          "description": "Whether there are more posts",
+          "example": true,
+          "type": "boolean"
+        },
+        "posts": {
+          "items": {
+            "$ref": "#/definitions/Post"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "StandardResponse": {
+      "properties": {
+        "code": {
+          "enum": [
+            "SUCCESS",
+            "FAILED",
+            "BAD_REQUEST",
+            "UNAUTHORIZED",
+            "FORBIDDEN",
+            "NOT_FOUND",
+            "CONFLICT",
+            "INTERNAL_SERVER_ERROR"
+          ],
+          "example": "SUCCESS",
+          "type": "string"
+        },
+        "data": {
+          "description": "Response data (varies by endpoint)",
+          "type": "object"
+        },
+        "errors": {
+          "example": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "message": {
+          "example": "Operation completed successfully",
+          "type": "string"
+        },
+        "requestId": {
+          "example": "req_123456789",
+          "type": "string"
+        },
+        "serverTime": {
+          "example": "2024-01-01T00:00:00Z",
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "UpdatePostRequest": {
+      "properties": {
+        "caption": {
+          "example": "Updated caption for my post",
+          "maxLength": 1000,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "caption"
+      ],
+      "type": "object"
+    }
+  },
+  "securityDefinitions": {
+    "bearerAuth": {
+      "description": "JWT token obtained from login endpoint",
+      "in": "header",
+      "name": "Authorization",
+      "type": "apiKey"
+    }
+  },
+  "x-components": {}
+}

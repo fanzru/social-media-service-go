@@ -59,6 +59,10 @@ http-gen:
 swagger-gen:
 	scripts/swaggerdocs.sh
 
+make gen:
+	make http-gen
+	make swagger-gen
+
 # Show current database configuration
 db-info:
 	@echo "Database Configuration:"

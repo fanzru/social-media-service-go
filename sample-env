@@ -6,7 +6,7 @@ SERVER_PORT=8080
 DB_HOST=localhost
 DB_PORT=5432
 DB_USER=postgres
-DB_PASSWORD=password
+DB_PASSWORD=postgres123
 DB_NAME=social_media
 DB_SSL_MODE=disable
 
@@ -20,9 +20,28 @@ JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 JWT_EXPIRATION=24
 
 # File Storage Configuration
-UPLOAD_PATH=./uploads
 MAX_FILE_SIZE=104857600
 ALLOWED_EXTENSIONS=.png,.jpg,.jpeg,.bmp
+
+# S3 Configuration (Cloudflare R2)
+S3_REGION=auto
+S3_BUCKET=social-media
+S3_ACCESS_KEY_ID=your-r2-access-key-id
+S3_SECRET_ACCESS_KEY=your-r2-secret-access-key
+S3_ENDPOINT=s3.us-east-1.cloudflarestorage.com
+S3_IMAGE_BASE_URL=base.url
+
+# Image Processing Configuration
+IMAGE_RESIZE_WIDTH=600
+IMAGE_RESIZE_HEIGHT=600
+IMAGE_QUALITY=85
+
+# StatsD Configuration for Metrics Collection
+STATSD_ENABLED=true
+STATSD_HOST=localhost
+STATSD_PORT=8125
+STATSD_PREFIX=social_media
+STATSD_SAMPLING=1.0
 
 # Logging Configuration
 LOG_LEVEL=INFO

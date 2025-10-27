@@ -1,0 +1,37 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+{
+  "manifestVersion": "2.0.0",
+  "signatureType": "grafana",
+  "signedByOrg": "grafana",
+  "signedByOrgName": "Grafana Labs",
+  "plugin": "grafana-clock-panel",
+  "version": "2.1.9",
+  "time": 1756479312980,
+  "keyId": "7e4d0c6a708866e7",
+  "files": {
+    "LICENSE": "b46400c1ab5630edeb4e43b240a027d203375ebe5a9efb7de88c604c5c5cace0",
+    "module.js.LICENSE.txt": "acadb9b5cd28258081d6023bb8cdda9eddcb280d44122c3bb646f225131d6eb1",
+    "img/countdown1.png": "ce51c235273667dde4a8fedc36ea70c6bfa7670b247514a2ae1654bd872548aa",
+    "img/clock.svg": "d27cbdb85432fe1ad96eeec6758c2c4a0b189b306ba2040519aec09938889fbc",
+    "img/screenshot-clock-options.png": "55f428cc45f65e53a118db2b969353cd01e0d2f879848b1df503750ed27007cf",
+    "img/screenshot-showcase.png": "43c6520f1efa3343d839b9462a22ce962d2b041f2d5d9c743a8603caa8392a71",
+    "img/screenshot-clocks.png": "4dcf3c3d303e63239689df853b80ef79557eaf5496679400f362e68f57f60577",
+    "CHANGELOG.md": "65e577cb5a98f4e15992881a44d7da9d0dce3ab634a4cd0a33af14534fa87f62",
+    "module.js": "c9cf414795542e795a192e935f689f5cb8d2e7d062f4928e018c612e169e19b0",
+    "module.js.map": "8d65bad48cde546274b43d3a53a93c4d929fb1b1ad7a78236413bd4c1a98b5eb",
+    "plugin.json": "d383aac621b03ff705de8a0c0ac46eff510b0ec905f99bbf0710ed2b347b82f9",
+    "README.md": "4d6fec216e1e15ad68035a502c2e7b66c7af1a699b1a0062743e0cf8c5b6a9d3"
+  }
+}
+-----BEGIN PGP SIGNATURE-----
+
+wsA9BAETCgBtBYJosb9RCZB+TQxqcIhm50UUAAAAAAAcACBzYWx0QG5vdGF0
+aW9ucy5vcGVucGdwanMub3Jn/soA9jCRjYeUBZJcPl2gVABAJ0p1FGNfDy1S
+200aJc0WIQTzOyW2kQdOhGNlcPN+TQxqcIhm5wAA2YwB+QFNEL6Tog6pekwY
+RkuVbVaVF1d7APhjRL4M1uoR5n7JRIMAFMVcpGBSRLTTObq4NYHcsRpH2u/O
+FB+ynldIbuMCCQEfZMsaVXmm3GOnQi2roXeO8LRgq7dT5pJcjrE9mJfUdWog
+If9tv/F02Iv7RAZEav4woq2EGpUlz04zK30TFGFJHQ==
+=QhfR
+-----END PGP SIGNATURE-----

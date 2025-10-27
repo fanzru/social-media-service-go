@@ -1,0 +1,31 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Prometheus sendiri
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Node Exporter untuk system metrics
+  - job_name: "node-exporter"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+
+  # StatsD Exporter untuk metrics dari StatsD
+  - job_name: "statsd-exporter"
+    static_configs:
+      - targets: ["statsd:9102"]
+    scrape_interval: 5s
+
+  # Aplikasi Go (akan kita buat metrics endpoint)
+  - job_name: "social-media-app"
+    static_configs:
+      - targets: ["host.docker.internal:8080"]
+    metrics_path: "/metrics"
+    scrape_interval: 5s

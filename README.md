@@ -10,6 +10,9 @@ A Go-based social media service API with account management functionality.
 - ✅ Environment-based configuration
 - ✅ PostgreSQL database support
 - ✅ Clean architecture with repository pattern
+- ✅ StatsD metrics collection
+- ✅ Grafana monitoring dashboard
+- ✅ K6 load testing suite
 
 ## API Endpoints
 
@@ -164,7 +167,63 @@ go test ./...
 go build -o bin/server cmd/server/main.go
 ```
 
+## 📊 Monitoring & Load Testing
+
+### Monitoring Stack
+
+Start the monitoring stack with StatsD, Graphite, and Grafana:
+
+```bash
+# Start monitoring services
+docker-compose up -d graphite-statsd grafana
+
+# Access monitoring
+# Grafana: http://localhost:3000 (admin/admin123)
+# Graphite: http://localhost:8080
+```
+
+### Load Testing with K6
+
+Install K6 and run load tests:
+
+```bash
+# Install K6 (if not already installed)
+./install-k6.sh
+
+# Run quick test
+./k6-test.sh
+
+# Run all tests
+./run-all-tests.sh
+
+# Run specific test
+k6 run scripts/k6/k6-load-test.js
+```
+
+**Available Tests:**
+
+- **Basic Load Test**: 100 requests per minute for 2 minutes
+- **Multi-Endpoint Test**: Multiple APIs with weighted distribution
+- **Stress Test**: High load with up to 100 users for 10 minutes
+
+**Test Results:**
+
+- Real-time metrics in Grafana dashboard
+- Detailed results in JSON files
+- Performance analysis and recommendations
+
+### Metrics Collected
+
+- **API Metrics**: Request rate, response time, error rate
+- **Database Metrics**: Query performance, connection pool
+- **System Metrics**: Memory usage, CPU, goroutines
+
+## 📚 Documentation
+
+- [Monitoring Setup](docs/MONITORING-DOCKER.md)
+- [K6 Load Testing](scripts/k6/README-K6.md)
+- [Metrics Documentation](docs/METRICS.md)
+
 ## License
 
 MIT License
-# social-media-service-go

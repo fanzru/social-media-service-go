@@ -37,7 +37,7 @@ func (h *Handler) GetHealth(w http.ResponseWriter, r *http.Request) {
 	requestID := reqctx.GetRequestID(ctx)
 
 	// Perform health check
-	healthResponse := h.service.GetHealth()
+	healthResponse := h.service.GetHealth(ctx)
 
 	// Log the health check
 	duration := time.Since(start)
@@ -107,7 +107,7 @@ func (h *Handler) GetHealthReady(w http.ResponseWriter, r *http.Request) {
 	requestID := reqctx.GetRequestID(ctx)
 
 	// Check if the service is ready to accept traffic
-	healthResponse := h.service.GetHealth()
+	healthResponse := h.service.GetHealth(ctx)
 
 	var statusCode int
 	var status string

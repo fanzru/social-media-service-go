@@ -21,12 +21,12 @@ type DBInterface interface {
 
 // Repository interface defines the contract for account data operations
 type Repository interface {
-	Create(acc *account.Account) error
-	GetByID(id int64) (*account.Account, error)
-	GetByEmail(email string) (*account.Account, error)
-	Update(acc *account.Account) error
-	Delete(id int64) error
-	SoftDelete(id int64) error
+	Create(ctx context.Context, acc *account.Account) error
+	GetByID(ctx context.Context, id int64) (*account.Account, error)
+	GetByEmail(ctx context.Context, email string) (*account.Account, error)
+	Update(ctx context.Context, acc *account.Account) error
+	Delete(ctx context.Context, id int64) error
+	SoftDelete(ctx context.Context, id int64) error
 }
 
 // repository implements the Repository interface
@@ -77,7 +77,7 @@ func (w *sqlDBWrapper) ExecContext(ctx context.Context, query string, args ...in
 }
 
 // Create creates a new account in the database
-func (r *repository) Create(acc *account.Account) error {
+func (r *repository) Create(ctx context.Context, acc *account.Account) error {
 	query := `
 		INSERT INTO accounts (name, email, password, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5)
@@ -87,7 +87,8 @@ func (r *repository) Create(acc *account.Account) error {
 	acc.CreatedAt = now
 	acc.UpdatedAt = now
 
-	err := r.db.QueryRow(
+	err := r.db.QueryRowContext(
+		ctx,
 		query,
 		acc.Name,
 		acc.Email,
@@ -100,14 +101,14 @@ func (r *repository) Create(acc *account.Account) error {
 }
 
 // GetByID retrieves an account by ID
-func (r *repository) GetByID(id int64) (*account.Account, error) {
+func (r *repository) GetByID(ctx context.Context, id int64) (*account.Account, error) {
 	query := `
 		SELECT id, name, email, password, created_at, updated_at, deleted_at
 		FROM accounts
 		WHERE id = $1 AND deleted_at IS NULL`
 
 	acc := &account.Account{}
-	err := r.db.QueryRow(query, id).Scan(
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&acc.ID,
 		&acc.Name,
 		&acc.Email,
@@ -125,14 +126,14 @@ func (r *repository) GetByID(id int64) (*account.Account, error) {
 }
 
 // GetByEmail retrieves an account by email
-func (r *repository) GetByEmail(email string) (*account.Account, error) {
+func (r *repository) GetByEmail(ctx context.Context, email string) (*account.Account, error) {
 	query := `
 		SELECT id, name, email, password, created_at, updated_at, deleted_at
 		FROM accounts
 		WHERE email = $1 AND deleted_at IS NULL`
 
 	acc := &account.Account{}
-	err := r.db.QueryRow(query, email).Scan(
+	err := r.db.QueryRowContext(ctx, query, email).Scan(
 		&acc.ID,
 		&acc.Name,
 		&acc.Email,
@@ -150,7 +151,7 @@ func (r *repository) GetByEmail(email string) (*account.Account, error) {
 }
 
 // Update updates an existing account
-func (r *repository) Update(acc *account.Account) error {
+func (r *repository) Update(ctx context.Context, acc *account.Account) error {
 	query := `
 		UPDATE accounts
 		SET name = $2, email = $3, password = $4, updated_at = $5
@@ -158,7 +159,8 @@ func (r *repository) Update(acc *account.Account) error {
 
 	acc.UpdatedAt = time.Now()
 
-	result, err := r.db.Exec(
+	result, err := r.db.ExecContext(
+		ctx,
 		query,
 		acc.ID,
 		acc.Name,
@@ -184,10 +186,10 @@ func (r *repository) Update(acc *account.Account) error {
 }
 
 // Delete permanently deletes an account
-func (r *repository) Delete(id int64) error {
+func (r *repository) Delete(ctx context.Context, id int64) error {
 	query := `DELETE FROM accounts WHERE id = $1`
 
-	result, err := r.db.Exec(query, id)
+	result, err := r.db.ExecContext(ctx, query, id)
 	if err != nil {
 		return err
 	}
@@ -205,7 +207,7 @@ func (r *repository) Delete(id int64) error {
 }
 
 // SoftDelete soft deletes an account by setting deleted_at
-func (r *repository) SoftDelete(id int64) error {
+func (r *repository) SoftDelete(ctx context.Context, id int64) error {
 	query := `
 		UPDATE accounts
 		SET deleted_at = $2, updated_at = $3

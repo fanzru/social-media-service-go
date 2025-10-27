@@ -34,6 +34,16 @@ func GetInt64(key string, defaultValue int64) int64 {
 	return defaultValue
 }
 
+// GetFloat64 gets an environment variable as float64 or returns a default value
+func GetFloat64(key string, defaultValue float64) float64 {
+	if value := os.Getenv(key); value != "" {
+		if floatValue, err := strconv.ParseFloat(value, 64); err == nil {
+			return floatValue
+		}
+	}
+	return defaultValue
+}
+
 // GetBool gets an environment variable as boolean or returns a default value
 func GetBool(key string, defaultValue bool) bool {
 	if value := os.Getenv(key); value != "" {
@@ -89,16 +99,16 @@ func splitString(s, sep string) []string {
 func trimString(s string) string {
 	start := 0
 	end := len(s)
-	
+
 	// Trim leading spaces
 	for start < end && s[start] == ' ' {
 		start++
 	}
-	
+
 	// Trim trailing spaces
 	for end > start && s[end-1] == ' ' {
 		end--
 	}
-	
+
 	return s[start:end]
 }

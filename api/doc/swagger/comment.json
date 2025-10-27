@@ -1,0 +1,526 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "contact": {
+      "email": "hi@fanzru.dev",
+      "name": "Social Media Service Team"
+    },
+    "description": "API for managing comments on social media posts",
+    "title": "Comment API",
+    "version": "1.0.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/api/comments/user/{userId}": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "description": "User ID",
+            "format": "int64",
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "description": "Cursor for pagination",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "default": 20,
+            "description": "Number of comments to return (max 100)",
+            "in": "query",
+            "maximum": 100,
+            "minimum": 1,
+            "name": "limit",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User comments retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          }
+        },
+        "tags": [
+          "Comments"
+        ],
+        "description": "Get all comments by a specific user",
+        "summary": "Get user comments"
+      }
+    },
+    "/api/comments/{id}": {
+      "delete": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "description": "Comment ID",
+            "format": "int64",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comment deleted successfully",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid credentials",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "403": {
+            "description": "Forbidden - not the comment creator",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "404": {
+            "description": "Comment not found",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Comments"
+        ],
+        "description": "Delete a comment (only the creator can delete)",
+        "summary": "Delete comment"
+      },
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "description": "Comment ID",
+            "format": "int64",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comment retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "404": {
+            "description": "Comment not found",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          }
+        },
+        "tags": [
+          "Comments"
+        ],
+        "description": "Get a specific comment by its ID",
+        "summary": "Get comment by ID"
+      },
+      "put": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "description": "Comment ID",
+            "format": "int64",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateCommentRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comment updated successfully",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request - validation errors",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid credentials",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "403": {
+            "description": "Forbidden - not the comment creator",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "404": {
+            "description": "Comment not found",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Comments"
+        ],
+        "description": "Update a comment (only the creator can update)",
+        "summary": "Update comment"
+      }
+    },
+    "/api/posts/{postId}/comments": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "description": "Post ID",
+            "format": "int64",
+            "in": "path",
+            "name": "postId",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "description": "Cursor for pagination",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "default": 20,
+            "description": "Number of comments to return (max 100)",
+            "in": "query",
+            "maximum": 100,
+            "minimum": 1,
+            "name": "limit",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comments retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "404": {
+            "description": "Post not found",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          }
+        },
+        "tags": [
+          "Comments"
+        ],
+        "description": "Get all comments for a specific post with pagination",
+        "summary": "Get post comments"
+      },
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "description": "Post ID",
+            "format": "int64",
+            "in": "path",
+            "name": "postId",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateCommentRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Comment created successfully",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request - validation errors",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid credentials",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "404": {
+            "description": "Post not found",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Comments"
+        ],
+        "description": "Create a new comment on a specific post",
+        "summary": "Create a new comment"
+      }
+    }
+  },
+  "definitions": {
+    "Comment": {
+      "properties": {
+        "content": {
+          "example": "Great post! Love the sunset 🌅",
+          "type": "string"
+        },
+        "created_at": {
+          "example": "2024-01-01T00:00:00Z",
+          "format": "date-time",
+          "type": "string"
+        },
+        "creator_id": {
+          "example": 2,
+          "format": "int64",
+          "type": "integer"
+        },
+        "creator_name": {
+          "example": "Jane Smith",
+          "type": "string"
+        },
+        "deleted_at": {
+          "example": null,
+          "format": "date-time",
+          "type": "string",
+          "x-nullable": true
+        },
+        "id": {
+          "example": 1,
+          "format": "int64",
+          "type": "integer"
+        },
+        "post_id": {
+          "example": 1,
+          "format": "int64",
+          "type": "integer"
+        },
+        "updated_at": {
+          "example": "2024-01-01T00:00:00Z",
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "CommentListResponse": {
+      "properties": {
+        "comments": {
+          "items": {
+            "$ref": "#/definitions/Comment"
+          },
+          "type": "array"
+        },
+        "cursor": {
+          "description": "Cursor for next page",
+          "example": "2024-01-01T00:00:00Z",
+          "type": "string",
+          "x-nullable": true
+        },
+        "has_more": {
+          "description": "Whether there are more comments",
+          "example": true,
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "CreateCommentRequest": {
+      "properties": {
+        "content": {
+          "example": "Great post! Love the sunset 🌅",
+          "maxLength": 500,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "content"
+      ],
+      "type": "object"
+    },
+    "StandardResponse": {
+      "properties": {
+        "code": {
+          "enum": [
+            "SUCCESS",
+            "FAILED",
+            "BAD_REQUEST",
+            "UNAUTHORIZED",
+            "FORBIDDEN",
+            "NOT_FOUND",
+            "CONFLICT",
+            "INTERNAL_SERVER_ERROR"
+          ],
+          "example": "SUCCESS",
+          "type": "string"
+        },
+        "data": {
+          "description": "Response data (varies by endpoint)",
+          "type": "object"
+        },
+        "errors": {
+          "example": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "message": {
+          "example": "Operation completed successfully",
+          "type": "string"
+        },
+        "requestId": {
+          "example": "req_123456789",
+          "type": "string"
+        },
+        "serverTime": {
+          "example": "2024-01-01T00:00:00Z",
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "UpdateCommentRequest": {
+      "properties": {
+        "content": {
+          "example": "Updated comment content",
+          "maxLength": 500,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "content"
+      ],
+      "type": "object"
+    }
+  },
+  "securityDefinitions": {
+    "bearerAuth": {
+      "description": "JWT token obtained from login endpoint",
+      "in": "header",
+      "name": "Authorization",
+      "type": "apiKey"
+    }
+  },
+  "x-components": {}
+}

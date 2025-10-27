@@ -1,6 +1,9 @@
 package health
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 // HealthStatus represents the health status of the application
 type HealthStatus string
@@ -31,15 +34,15 @@ type HealthResponse struct {
 
 // HealthService defines the interface for health operations
 type HealthService interface {
-	GetHealth() HealthResponse
-	CheckDatabase() HealthCheck
-	CheckRedis() HealthCheck
-	CheckExternalAPI() HealthCheck
+	GetHealth(ctx context.Context) HealthResponse
+	CheckDatabase(ctx context.Context) HealthCheck
+	CheckRedis(ctx context.Context) HealthCheck
+	CheckExternalAPI(ctx context.Context) HealthCheck
 }
 
 // HealthRepository defines the interface for health data operations
 type HealthRepository interface {
-	PingDatabase() error
-	PingRedis() error
-	PingExternalAPI() error
+	PingDatabase(ctx context.Context) error
+	PingRedis(ctx context.Context) error
+	PingExternalAPI(ctx context.Context) error
 }
