@@ -112,8 +112,11 @@ func getTableFromQuery(query string) string {
 // recordMetrics records database metrics if InfluxDB client is available
 func (db *DB) recordMetrics(operation, table string, duration time.Duration, err error) {
 	if db.influxClient == nil {
+		db.logger.Debug("InfluxDB client is nil, skipping database metrics")
 		return
 	}
+
+	db.logger.Debug("Recording database metrics", "operation", operation, "table", table, "duration_ms", duration.Milliseconds())
 
 	status := "SUCCESS"
 	if err != nil {
@@ -129,17 +132,24 @@ func (db *DB) recordMetrics(operation, table string, duration time.Duration, err
 	}
 
 	// Record query count
-	_ = db.influxClient.WriteCounter("db_queries_total", tags, 1)
+	if writeErr := db.influxClient.WriteCounter("db_queries_total", tags, 1); writeErr != nil {
+		db.logger.Error("Failed to write database metrics to InfluxDB", "error", writeErr.Error())
+	}
 
 	// Record query duration
-	_ = db.influxClient.WriteTiming("db_query_duration_ms", tags, duration)
+	if writeErr := db.influxClient.WriteTiming("db_query_duration_ms", tags, duration); writeErr != nil {
+		db.logger.Error("Failed to write database timing to InfluxDB", "error", writeErr.Error())
+	}
 }
 
 // recordTxMetrics records transaction metrics if InfluxDB client is available
 func (tx *Tx) recordTxMetrics(operation, table string, duration time.Duration, err error) {
 	if tx.influxClient == nil {
+		tx.logger.Debug("InfluxDB client is nil, skipping transaction metrics")
 		return
 	}
+
+	tx.logger.Debug("Recording transaction metrics", "operation", operation, "table", table, "duration_ms", duration.Milliseconds())
 
 	status := "SUCCESS"
 	if err != nil {
@@ -155,10 +165,14 @@ func (tx *Tx) recordTxMetrics(operation, table string, duration time.Duration, e
 	}
 
 	// Record query count
-	_ = tx.influxClient.WriteCounter("db_queries_total", tags, 1)
+	if writeErr := tx.influxClient.WriteCounter("db_queries_total", tags, 1); writeErr != nil {
+		tx.logger.Error("Failed to write database metrics to InfluxDB", "error", writeErr.Error())
+	}
 
 	// Record query duration
-	_ = tx.influxClient.WriteTiming("db_query_duration_ms", tags, duration)
+	if writeErr := tx.influxClient.WriteTiming("db_query_duration_ms", tags, duration); writeErr != nil {
+		tx.logger.Error("Failed to write database timing to InfluxDB", "error", writeErr.Error())
+	}
 }
 
 // QueryRow executes a query that returns a single row
@@ -186,8 +200,14 @@ func (db *DB) QueryRow(query string, args ...interface{}) *sql.Row {
 // QueryRowContext executes a query that returns a single row with context
 func (db *DB) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
 	start := time.Now()
+	operation := getOperationFromQuery(query)
+	table := getTableFromQuery(query)
+
 	row := db.DB.QueryRowContext(ctx, query, args...)
 	duration := time.Since(start)
+
+	// Record metrics
+	db.recordMetrics(operation, table, duration, nil)
 
 	db.logger.Info("Database QueryRowContext executed",
 		"query", cleanQuery(query),
@@ -234,8 +254,14 @@ func (db *DB) Query(query string, args ...interface{}) (*sql.Rows, error) {
 // QueryContext executes a query that returns rows with context
 func (db *DB) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
 	start := time.Now()
+	operation := getOperationFromQuery(query)
+	table := getTableFromQuery(query)
+
 	rows, err := db.DB.QueryContext(ctx, query, args...)
 	duration := time.Since(start)
+
+	// Record metrics
+	db.recordMetrics(operation, table, duration, err)
 
 	if err != nil {
 		db.logger.Error("Database QueryContext failed",
@@ -292,8 +318,14 @@ func (db *DB) Exec(query string, args ...interface{}) (sql.Result, error) {
 // ExecContext executes a query without returning any rows with context
 func (db *DB) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
 	start := time.Now()
+	operation := getOperationFromQuery(query)
+	table := getTableFromQuery(query)
+
 	result, err := db.DB.ExecContext(ctx, query, args...)
 	duration := time.Since(start)
+
+	// Record metrics
+	db.recordMetrics(operation, table, duration, err)
 
 	if err != nil {
 		db.logger.Error("Database ExecContext failed",
