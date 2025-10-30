@@ -39,9 +39,10 @@ echo "1. Basic Load Test (100 RPM, 2 minutes)"
 echo "2. Multi-Endpoint Test (Multiple APIs)"
 echo "3. Stress Test (High load, 10 minutes)"
 echo "4. Run Test Suite (Interactive)"
+echo "5. Usage Forecast (1k uploads/hour, 100k comments/hour)"
 echo ""
 
-read -p "Select test (1-4): " choice
+read -p "Select test (1-5): " choice
 
 case $choice in
     1)
@@ -60,6 +61,12 @@ case $choice in
         echo "📊 Running Test Suite..."
         chmod +x scripts/k6/k6-test-suite.sh
         SERVER_PORT=$API_PORT ./scripts/k6/k6-test-suite.sh
+        ;;
+    5)
+        echo "📊 Running Usage Forecast Test..."
+        echo "   - Requires AUTH_TOKEN for protected endpoints (export AUTH_TOKEN=...)"
+        echo "   - Optional: SAMPLE_IMAGE path for uploads (export SAMPLE_IMAGE=scripts/k6/sample.jpg)"
+        SERVER_PORT=$API_PORT k6 run scripts/k6/k6-usage-forecast.js
         ;;
     *)
         echo "❌ Invalid choice. Exiting..."

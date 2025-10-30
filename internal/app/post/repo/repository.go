@@ -3,7 +3,9 @@ package repo
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/fanzru/social-media-service-go/internal/app/comment"
@@ -292,8 +294,11 @@ func (r *Repository) GetPostsSortedByComments(ctx context.Context, cursor string
 	args := []interface{}{}
 
 	if cursor != "" {
-		query += ` AND (comment_count < $1 OR (comment_count = $1 AND created_at < $2))`
-		args = append(args, cursor)
+		cc, ct, err := decodeCommentsCursor(cursor)
+		if err == nil {
+			query += ` AND (comment_count < $1 OR (comment_count = $1 AND created_at < $2))`
+			args = append(args, cc, ct)
+		}
 	}
 
 	query += ` ORDER BY comment_count DESC, created_at DESC LIMIT $` + fmt.Sprintf("%d", len(args)+1)
@@ -329,7 +334,8 @@ func (r *Repository) GetPostsSortedByComments(ctx context.Context, cursor string
 
 	var nextCursor string
 	if hasMore && len(posts) > 0 {
-		nextCursor = fmt.Sprintf("%d", posts[len(posts)-1].CommentCount)
+		last := posts[len(posts)-1]
+		nextCursor = encodeCommentsCursor(last.CommentCount, last.CreatedAt)
 	}
 
 	return &post.PostListResponse{
@@ -337,4 +343,32 @@ func (r *Repository) GetPostsSortedByComments(ctx context.Context, cursor string
 		Cursor:  nextCursor,
 		HasMore: hasMore,
 	}, nil
+}
+
+// encodeCommentsCursor creates a stable cursor combining comment_count and created_at
+func encodeCommentsCursor(commentCount int64, createdAt time.Time) string {
+	plain := fmt.Sprintf("%d|%s", commentCount, createdAt.Format(time.RFC3339Nano))
+	return base64.RawURLEncoding.EncodeToString([]byte(plain))
+}
+
+// decodeCommentsCursor parses the composite cursor back to values
+func decodeCommentsCursor(cursor string) (int64, time.Time, error) {
+	b, err := base64.RawURLEncoding.DecodeString(cursor)
+	if err != nil {
+		return 0, time.Time{}, err
+	}
+	parts := strings.SplitN(string(b), "|", 2)
+	if len(parts) != 2 {
+		return 0, time.Time{}, fmt.Errorf("invalid cursor format")
+	}
+	var cc int64
+	_, err = fmt.Sscanf(parts[0], "%d", &cc)
+	if err != nil {
+		return 0, time.Time{}, err
+	}
+	ct, err := time.Parse(time.RFC3339Nano, parts[1])
+	if err != nil {
+		return 0, time.Time{}, err
+	}
+	return cc, ct, nil
 }

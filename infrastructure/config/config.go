@@ -90,7 +90,7 @@ func Load() *Config {
 		},
 		Storage: StorageConfig{
 			MaxSize:     env.GetInt64("MAX_FILE_SIZE", 104857600), // 100MB
-			AllowedExts: env.GetStringSlice("ALLOWED_EXTENSIONS", []string{".png", ".jpg", ".jpeg", ".bmp"}),
+			AllowedExts: env.GetStringSlice("ALLOWED_EXTENSIONS", []string{".png", ".jpg", ".bmp"}),
 
 			// S3 Configuration
 			S3Region:          env.GetString("S3_REGION", "auto"),

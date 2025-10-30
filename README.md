@@ -13,6 +13,8 @@ A Go-based social media service API with account management functionality.
 - ✅ StatsD metrics collection
 - ✅ Grafana monitoring dashboard
 - ✅ K6 load testing suite
+- ✅ Image upload with processing (resize + JPG), original retained
+- ✅ Posts listing sorted by comment count with cursor-based pagination
 
 ## API Endpoints
 
@@ -21,6 +23,27 @@ A Go-based social media service API with account management functionality.
 - `POST /api/account/register` - Register a new account
 - `POST /api/account/login` - Login to account
 - `GET /health` - Health check endpoint
+
+### Posts & Images
+
+- `POST /api/posts` - Create post with image (multipart/form-data)
+
+  - Fields:
+    - `caption` (string, required)
+    - `image` (file, required)
+  - Image rules (company requirements):
+    - Max size: 100MB
+    - Allowed formats: `.png`, `.jpg`, `.bmp`
+    - Original image is saved in its original format to storage
+    - Processed image is converted to `.jpg` and resized to `600x600`
+    - API serves images only as `.jpg`
+
+- `GET /api/posts` - List posts sorted by number of comments (desc) with cursor-based pagination
+  - Query params:
+    - `cursor` (string, optional) — composite cursor encoding `comment_count|created_at` using URL-safe Base64
+    - `limit` (int, optional, default 20, max 100)
+  - Sort order: `comment_count DESC, created_at DESC`
+  - Response includes `cursor` (next page token) and `has_more`
 
 ## Quick Start
 
@@ -140,6 +163,35 @@ The application uses environment variables for configuration. See `sample-env` f
 - `DB_NAME` - Database name
 - `JWT_SECRET` - JWT secret key
 - `JWT_EXPIRATION` - JWT expiration in hours
+
+### Storage & Image Processing Configuration
+
+- `MAX_FILE_SIZE` — Max upload size in bytes (default: `104857600` = 100MB)
+- `ALLOWED_EXTENSIONS` — Allowed file extensions (default: `.png,.jpg,.bmp`)
+- `IMAGE_RESIZE_WIDTH` — Processed image width (default: 600)
+- `IMAGE_RESIZE_HEIGHT` — Processed image height (default: 600)
+- `IMAGE_QUALITY` — JPEG quality 1-100 (default: 85)
+- `S3_REGION` — S3/R2 region (default: `auto`)
+- `S3_BUCKET` — Bucket name
+- `S3_ACCESS_KEY_ID` — Access key
+- `S3_SECRET_ACCESS_KEY` — Secret key
+- `S3_ENDPOINT` — Optional custom endpoint (e.g., Cloudflare R2)
+- `S3_IMAGE_BASE_URL` — Public base URL for serving images
+
+Notes:
+
+- The service uploads two files per post image:
+  - Original: `post_<timestamp>_orig.<ext>` (content-type based on original extension)
+  - Processed: `post_<timestamp>.jpg` (content-type `image/jpeg`)
+- Deletion attempts to remove both processed and original variants.
+
+### Cursor-Based Pagination (Posts Sorted by Comments)
+
+- Composite cursor ensures stable pagination when multiple posts share the same comment count.
+- Format (conceptual): `comment_count|created_at` encoded with URL-safe Base64 (no padding).
+- Example flow:
+  1. Call `GET /api/posts?limit=20`
+  2. Use `cursor` from response for the next page: `GET /api/posts?cursor=<token>&limit=20`
 
 ## Development
 

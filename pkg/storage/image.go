@@ -55,17 +55,30 @@ func (s *ImageStorageService) ProcessAndUploadImage(file multipart.File, header 
 		return "", "", fmt.Errorf("failed to read file: %w", err)
 	}
 
+	// Generate a stable timestamp-based base name
+	timestamp := time.Now().UnixNano()
+
+	// Upload original file in its original format
+	originalExt := strings.ToLower(filepath.Ext(header.Filename))
+	if originalExt == "" {
+		originalExt = ".bin"
+	}
+	originalKey := fmt.Sprintf("post_%d_orig%s", timestamp, originalExt)
+	contentType := contentTypeFromExt(originalExt)
+	if err := s.s3Client.Upload(context.Background(), originalKey, bytes.NewReader(fileContent), contentType); err != nil {
+		return "", "", fmt.Errorf("original image upload failed: %w", err)
+	}
 	// Process image (resize and convert to JPG)
 	processedImage, err := s.processImage(fileContent)
 	if err != nil {
 		return "", "", fmt.Errorf("image processing failed: %w", err)
 	}
 
-	// Generate filename
-	filename := s.generateFilename(header.Filename)
+	// Generate processed filename (always .jpg)
+	processedKey := fmt.Sprintf("post_%d.jpg", timestamp)
 
-	// Upload image directly to S3
-	imagePath, imageURL, err := s.uploadToS3(processedImage, filename)
+	// Upload processed image directly to S3
+	imagePath, imageURL, err := s.uploadToS3(processedImage, processedKey)
 	if err != nil {
 		return "", "", fmt.Errorf("image upload failed: %w", err)
 	}
@@ -123,7 +136,6 @@ func (s *ImageStorageService) generateFilename(originalFilename string) string {
 	return fmt.Sprintf("post_%d%s", timestamp, ext)
 }
 
-
 // uploadToS3 uploads image to S3
 func (s *ImageStorageService) uploadToS3(imageData []byte, filename string) (string, string, error) {
 	ctx := context.Background()
@@ -143,10 +155,23 @@ func (s *ImageStorageService) uploadToS3(imageData []byte, filename string) (str
 	return imagePath, imageURL, nil
 }
 
-
 // DeleteImage deletes an image from S3
 func (s *ImageStorageService) DeleteImage(imagePath string) error {
-	return s.deleteFromS3(imagePath)
+	// Delete processed image
+	_ = s.deleteFromS3(imagePath)
+
+	// Also attempt to delete any plausible original variant derived from the processed key
+	base := strings.TrimSuffix(imagePath, filepath.Ext(imagePath))
+	candidates := []string{
+		base + "_orig.png",
+		base + "_orig.jpg",
+		base + "_orig.jpeg",
+		base + "_orig.bmp",
+	}
+	for _, key := range candidates {
+		_ = s.deleteFromS3(key)
+	}
+	return nil
 }
 
 // deleteFromS3 deletes image from S3
@@ -162,8 +187,21 @@ func (s *ImageStorageService) deleteFromS3(imagePath string) error {
 	return nil
 }
 
-
 // GenerateImageURL generates the public URL for an image from S3
 func (s *ImageStorageService) GenerateImageURL(filename string) string {
 	return s.s3Client.GetURL(filename)
+}
+
+// contentTypeFromExt maps a file extension to an image content type.
+func contentTypeFromExt(ext string) string {
+	switch strings.ToLower(ext) {
+	case ".png":
+		return "image/png"
+	case ".jpg", ".jpeg":
+		return "image/jpeg"
+	case ".bmp":
+		return "image/bmp"
+	default:
+		return "application/octet-stream"
+	}
 }
