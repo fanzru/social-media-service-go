@@ -15,6 +15,12 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Get post comments
+	// (GET /api/comments/by-post/{postId})
+	GetApiCommentsByPostPostId(w http.ResponseWriter, r *http.Request, postId int64, params GetApiCommentsByPostPostIdParams)
+	// Create a new comment
+	// (POST /api/comments/by-post/{postId})
+	PostApiCommentsByPostPostId(w http.ResponseWriter, r *http.Request, postId int64)
 	// Get user comments
 	// (GET /api/comments/user/{userId})
 	GetApiCommentsUserUserId(w http.ResponseWriter, r *http.Request, userId int64, params GetApiCommentsUserUserIdParams)
@@ -27,12 +33,6 @@ type ServerInterface interface {
 	// Update comment
 	// (PUT /api/comments/{id})
 	PutApiCommentsId(w http.ResponseWriter, r *http.Request, id int64)
-	// Get post comments
-	// (GET /api/posts/{postId}/comments)
-	GetApiPostsPostIdComments(w http.ResponseWriter, r *http.Request, postId int64, params GetApiPostsPostIdCommentsParams)
-	// Create a new comment
-	// (POST /api/posts/{postId}/comments)
-	PostApiPostsPostIdComments(w http.ResponseWriter, r *http.Request, postId int64)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -43,6 +43,81 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// GetApiCommentsByPostPostId operation middleware
+func (siw *ServerInterfaceWrapper) GetApiCommentsByPostPostId(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "postId" -------------
+	var postId int64
+
+	err = runtime.BindStyledParameterWithOptions("simple", "postId", r.PathValue("postId"), &postId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "postId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetApiCommentsByPostPostIdParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "cursor", r.URL.Query(), &params.Cursor)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetApiCommentsByPostPostId(w, r, postId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PostApiCommentsByPostPostId operation middleware
+func (siw *ServerInterfaceWrapper) PostApiCommentsByPostPostId(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "postId" -------------
+	var postId int64
+
+	err = runtime.BindStyledParameterWithOptions("simple", "postId", r.PathValue("postId"), &postId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "postId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostApiCommentsByPostPostId(w, r, postId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
 
 // GetApiCommentsUserUserId operation middleware
 func (siw *ServerInterfaceWrapper) GetApiCommentsUserUserId(w http.ResponseWriter, r *http.Request) {
@@ -175,81 +250,6 @@ func (siw *ServerInterfaceWrapper) PutApiCommentsId(w http.ResponseWriter, r *ht
 	handler.ServeHTTP(w, r)
 }
 
-// GetApiPostsPostIdComments operation middleware
-func (siw *ServerInterfaceWrapper) GetApiPostsPostIdComments(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "postId" -------------
-	var postId int64
-
-	err = runtime.BindStyledParameterWithOptions("simple", "postId", r.PathValue("postId"), &postId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "postId", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params GetApiPostsPostIdCommentsParams
-
-	// ------------- Optional query parameter "cursor" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "cursor", r.URL.Query(), &params.Cursor)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "limit" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetApiPostsPostIdComments(w, r, postId, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// PostApiPostsPostIdComments operation middleware
-func (siw *ServerInterfaceWrapper) PostApiPostsPostIdComments(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "postId" -------------
-	var postId int64
-
-	err = runtime.BindStyledParameterWithOptions("simple", "postId", r.PathValue("postId"), &postId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "postId", Err: err})
-		return
-	}
-
-	ctx := r.Context()
-
-	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
-
-	r = r.WithContext(ctx)
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostApiPostsPostIdComments(w, r, postId)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
 type UnescapedCookieParamError struct {
 	ParamName string
 	Err       error
@@ -370,12 +370,12 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
+	m.HandleFunc("GET "+options.BaseURL+"/api/comments/by-post/{postId}", wrapper.GetApiCommentsByPostPostId)
+	m.HandleFunc("POST "+options.BaseURL+"/api/comments/by-post/{postId}", wrapper.PostApiCommentsByPostPostId)
 	m.HandleFunc("GET "+options.BaseURL+"/api/comments/user/{userId}", wrapper.GetApiCommentsUserUserId)
 	m.HandleFunc("DELETE "+options.BaseURL+"/api/comments/{id}", wrapper.DeleteApiCommentsId)
 	m.HandleFunc("GET "+options.BaseURL+"/api/comments/{id}", wrapper.GetApiCommentsId)
 	m.HandleFunc("PUT "+options.BaseURL+"/api/comments/{id}", wrapper.PutApiCommentsId)
-	m.HandleFunc("GET "+options.BaseURL+"/api/posts/{postId}/comments", wrapper.GetApiPostsPostIdComments)
-	m.HandleFunc("POST "+options.BaseURL+"/api/posts/{postId}/comments", wrapper.PostApiPostsPostIdComments)
 
 	return m
 }

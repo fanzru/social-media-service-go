@@ -10,6 +10,11 @@ import (
 	"strings"
 	"time"
 
+	// Register image format decoders
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+
 	"github.com/disintegration/imaging"
 	"github.com/fanzru/social-media-service-go/infrastructure/config"
 	"github.com/fanzru/social-media-service-go/pkg/logger"

@@ -97,19 +97,19 @@ func main() {
 	jwtService := jwt.NewService(cfg.JWT.Secret, time.Duration(cfg.JWT.Expiration)*time.Hour)
 	log.Info("JWT service initialized")
 
-    // Initialize account repository and service
-    accountRepository := repo.NewRepository(dbInterface)
-    log.Info("Account repository initialized")
+	// Initialize account repository and service
+	accountRepository := repo.NewRepository(dbInterface)
+	log.Info("Account repository initialized")
 
-    // Initialize image storage service
+	// Initialize image storage service
 	imageStorage := storage.NewImageStorageService(&cfg.Storage)
 	log.Info("Image storage service initialized")
 
-    accountService := accountApp.NewService(accountRepository, jwtService, imageStorage)
-    log.Info("Account service initialized")
+	accountService := accountApp.NewService(accountRepository, jwtService, imageStorage)
+	log.Info("Account service initialized")
 
-    accountHandler := accountHTTP.NewHandler(accountService)
-    log.Info("Account HTTP handler initialized")
+	accountHandler := accountHTTP.NewHandler(accountService)
+	log.Info("Account HTTP handler initialized")
 
 	// Initialize post repository and service
 	postRepository := postRepo.NewRepository(dbInterface)
@@ -152,12 +152,15 @@ func main() {
 
 	// Add security requirements manually for now
 	authMiddleware.AddSecurityRequirement("GET", "/api/account/profile", true)
-    authMiddleware.AddSecurityRequirement("DELETE", "/api/account", true)
-	authMiddleware.AddSecurityRequirement("GET", "/api/posts", false) // GET posts tidak perlu auth
+	authMiddleware.AddSecurityRequirement("DELETE", "/api/account", true)
+	authMiddleware.AddSecurityRequirement("GET", "/api/posts", false)
 	authMiddleware.AddSecurityRequirement("POST", "/api/posts", true)
 	authMiddleware.AddSecurityRequirement("PUT", "/api/posts", true)
 	authMiddleware.AddSecurityRequirement("DELETE", "/api/posts", true)
-	authMiddleware.AddSecurityRequirement("POST", "/api/posts", true) // for comments
+	// New explicit paths
+	authMiddleware.AddSecurityRequirement("GET", "/api/posts/by-user", false)
+	authMiddleware.AddSecurityRequirement("GET", "/api/comments/by-post", false)
+	authMiddleware.AddSecurityRequirement("POST", "/api/comments/by-post", true)
 	authMiddleware.AddSecurityRequirement("PUT", "/api/comments", true)
 	authMiddleware.AddSecurityRequirement("DELETE", "/api/comments", true)
 	log.Info("Security requirements loaded manually")
@@ -165,19 +168,10 @@ func main() {
 	// Create combined API handler
 	apiHandler := http.NewServeMux()
 
-	// Add account routes
-	accountApiHandler := genhttp.Handler(accountHandler)
-	apiHandler.Handle("/api/account/", accountApiHandler)
-
-	// Add post routes
-	postApiHandler := postGenHTTP.Handler(postHandler)
-	apiHandler.Handle("/api/posts", postApiHandler)
-	apiHandler.Handle("/api/posts/", postApiHandler)
-
-	// Add comment routes
-	commentApiHandler := commentGenHTTP.Handler(commentHandler)
-	apiHandler.Handle("/api/comments", commentApiHandler)
-	apiHandler.Handle("/api/comments/", commentApiHandler)
+	// Register per-domain handlers using a single mux (generated handlers define their own patterns)
+	genhttp.HandlerFromMux(accountHandler, apiHandler)
+	postGenHTTP.HandlerFromMux(postHandler, apiHandler)
+	commentGenHTTP.HandlerFromMux(commentHandler, apiHandler)
 
 	// Setup routes using combined API handler with comprehensive middleware
 	var apiHandlerWithMiddleware http.Handler = apiHandler

@@ -48,6 +48,15 @@ type UpdateCommentRequest struct {
 	Content string `json:"content"`
 }
 
+// GetApiCommentsByPostPostIdParams defines parameters for GetApiCommentsByPostPostId.
+type GetApiCommentsByPostPostIdParams struct {
+	// Cursor Cursor for pagination
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit Number of comments to return (max 100)
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
 // GetApiCommentsUserUserIdParams defines parameters for GetApiCommentsUserUserId.
 type GetApiCommentsUserUserIdParams struct {
 	// Cursor Cursor for pagination
@@ -57,17 +66,8 @@ type GetApiCommentsUserUserIdParams struct {
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
-// GetApiPostsPostIdCommentsParams defines parameters for GetApiPostsPostIdComments.
-type GetApiPostsPostIdCommentsParams struct {
-	// Cursor Cursor for pagination
-	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
-
-	// Limit Number of comments to return (max 100)
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
-}
+// PostApiCommentsByPostPostIdJSONRequestBody defines body for PostApiCommentsByPostPostId for application/json ContentType.
+type PostApiCommentsByPostPostIdJSONRequestBody = CreateCommentRequest
 
 // PutApiCommentsIdJSONRequestBody defines body for PutApiCommentsId for application/json ContentType.
 type PutApiCommentsIdJSONRequestBody = UpdateCommentRequest
-
-// PostApiPostsPostIdCommentsJSONRequestBody defines body for PostApiPostsPostIdComments for application/json ContentType.
-type PostApiPostsPostIdCommentsJSONRequestBody = CreateCommentRequest

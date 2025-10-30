@@ -22,8 +22,8 @@ func NewHandler(service comment.CommentService) *Handler {
 	}
 }
 
-// PostApiPostsPostIdComments handles POST /api/posts/{postId}/comments
-func (h *Handler) PostApiPostsPostIdComments(w http.ResponseWriter, r *http.Request, postId int64) {
+// PostApiCommentsByPostPostId handles POST /api/comments/by-post/{postId}
+func (h *Handler) PostApiCommentsByPostPostId(w http.ResponseWriter, r *http.Request, postId int64) {
 	userID, exists := middleware.GetUserID(r.Context())
 	if !exists || userID == 0 {
 		response.Unauthorized(r.Context(), "User not authenticated", []string{}).Send(w, http.StatusUnauthorized)
@@ -55,7 +55,7 @@ func (h *Handler) PostApiPostsPostIdComments(w http.ResponseWriter, r *http.Requ
 }
 
 // GetApiPostsPostIdComments handles GET /api/posts/{postId}/comments
-func (h *Handler) GetApiPostsPostIdComments(w http.ResponseWriter, r *http.Request, postId int64, params genhttp.GetApiPostsPostIdCommentsParams) {
+func (h *Handler) GetApiCommentsByPostPostId(w http.ResponseWriter, r *http.Request, postId int64, params genhttp.GetApiCommentsByPostPostIdParams) {
 	cursor := ""
 	if params.Cursor != nil {
 		cursor = *params.Cursor

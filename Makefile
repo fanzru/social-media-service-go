@@ -9,6 +9,7 @@ export
 DB_URL = postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSL_MODE)
 
 .PHONY: migrate-up migrate-down migrate-force migrate-version migrate-create build run deps test clean http-gen
+.PHONY: reset-timeseries reset-timeseries-all init-timeseries
 
 # Run all pending migrations
 migrate-up:
@@ -59,7 +60,7 @@ http-gen:
 swagger-gen:
 	scripts/swaggerdocs.sh
 
-make gen:
+gen:
 	make http-gen
 	make swagger-gen
 
@@ -164,3 +165,39 @@ docker-run:
 docker-stop:
 	docker stop social-media-app || true
 	docker rm social-media-app || true
+
+# Reset local time series data (InfluxDB + Prometheus)
+reset-timeseries:
+	@echo "⚠️  This will DELETE all local time series data (InfluxDB + Prometheus)."
+	@echo "    Make sure services are stopped before running."
+	@read -p "Proceed? [y/N] " ans; \
+	if [ "$$ans" = "y" ] || [ "$$ans" = "Y" ]; then \
+	  rm -rf \
+	    "/Users/mbprom4pro/go/src/github.com/fanzru/social-media-service-go/data/influxdb/"* \
+	    "/Users/mbprom4pro/go/src/github.com/fanzru/social-media-service-go/data/prometheus/"* ; \
+	  echo "✅ Time series data cleared."; \
+	else \
+	  echo "❎ Cancelled."; \
+	fi
+
+# Reset time series AND Grafana SQLite DB (fully clean monitoring stack)
+reset-timeseries-all:
+	@echo "⚠️  This will DELETE InfluxDB data, Prometheus data, and Grafana DB."
+	@echo "    You will lose Grafana users/datasources/dashboards stored in grafana.db."
+	@read -p "Proceed? [y/N] " ans; \
+	if [ "$$ans" = "y" ] || [ "$$ans" = "Y" ]; then \
+	  rm -rf \
+	    "/Users/mbprom4pro/go/src/github.com/fanzru/social-media-service-go/data/influxdb/"* \
+	    "/Users/mbprom4pro/go/src/github.com/fanzru/social-media-service-go/data/prometheus/"* ; \
+	  rm -f \
+	    "/Users/mbprom4pro/go/src/github.com/fanzru/social-media-service-go/data/grafana/grafana.db" ; \
+	  echo "✅ Monitoring data fully cleared."; \
+	else \
+	  echo "❎ Cancelled."; \
+	fi
+
+# Re-initialize time series stack (InfluxDB buckets, StatsD/Prometheus mapping)
+init-timeseries:
+	@bash "/Users/mbprom4pro/go/src/github.com/fanzru/social-media-service-go/scripts/setup-influxdb.sh" || true
+	@bash "/Users/mbprom4pro/go/src/github.com/fanzru/social-media-service-go/scripts/setup-statsd-prometheus.sh" || true
+	@echo "✅ Time series initialization scripts executed."

@@ -27,6 +27,9 @@ WORKDIR /root/
 # Copy binary from builder
 COPY --from=builder /app/bin/server .
 
+# Copy docs (Swagger UI + JSON)
+COPY --from=builder /app/docs /root/docs
+
 # Expose port
 EXPOSE 8080
 

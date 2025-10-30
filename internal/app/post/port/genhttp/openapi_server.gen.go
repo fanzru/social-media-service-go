@@ -22,8 +22,8 @@ type ServerInterface interface {
 	// (POST /api/posts)
 	PostApiPosts(w http.ResponseWriter, r *http.Request)
 	// Get user posts
-	// (GET /api/posts/user/{userId})
-	GetApiPostsUserUserId(w http.ResponseWriter, r *http.Request, userId int64, params GetApiPostsUserUserIdParams)
+	// (GET /api/posts/by-user/{userId})
+	GetApiPostsByUserUserId(w http.ResponseWriter, r *http.Request, userId int64, params GetApiPostsByUserUserIdParams)
 	// Delete post
 	// (DELETE /api/posts/{id})
 	DeleteApiPostsId(w http.ResponseWriter, r *http.Request, id int64)
@@ -99,8 +99,8 @@ func (siw *ServerInterfaceWrapper) PostApiPosts(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r)
 }
 
-// GetApiPostsUserUserId operation middleware
-func (siw *ServerInterfaceWrapper) GetApiPostsUserUserId(w http.ResponseWriter, r *http.Request) {
+// GetApiPostsByUserUserId operation middleware
+func (siw *ServerInterfaceWrapper) GetApiPostsByUserUserId(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -114,7 +114,7 @@ func (siw *ServerInterfaceWrapper) GetApiPostsUserUserId(w http.ResponseWriter, 
 	}
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params GetApiPostsUserUserIdParams
+	var params GetApiPostsByUserUserIdParams
 
 	// ------------- Optional query parameter "cursor" -------------
 
@@ -133,7 +133,7 @@ func (siw *ServerInterfaceWrapper) GetApiPostsUserUserId(w http.ResponseWriter, 
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetApiPostsUserUserId(w, r, userId, params)
+		siw.Handler.GetApiPostsByUserUserId(w, r, userId, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -352,7 +352,7 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 
 	m.HandleFunc("GET "+options.BaseURL+"/api/posts", wrapper.GetApiPosts)
 	m.HandleFunc("POST "+options.BaseURL+"/api/posts", wrapper.PostApiPosts)
-	m.HandleFunc("GET "+options.BaseURL+"/api/posts/user/{userId}", wrapper.GetApiPostsUserUserId)
+	m.HandleFunc("GET "+options.BaseURL+"/api/posts/by-user/{userId}", wrapper.GetApiPostsByUserUserId)
 	m.HandleFunc("DELETE "+options.BaseURL+"/api/posts/{id}", wrapper.DeleteApiPostsId)
 	m.HandleFunc("GET "+options.BaseURL+"/api/posts/{id}", wrapper.GetApiPostsId)
 	m.HandleFunc("PUT "+options.BaseURL+"/api/posts/{id}", wrapper.PutApiPostsId)

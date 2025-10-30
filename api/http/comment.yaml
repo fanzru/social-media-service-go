@@ -12,7 +12,7 @@ servers:
     description: Development server
 
 paths:
-  /api/posts/{postId}/comments:
+  /api/comments/by-post/{postId}:
     post:
       security:
         - bearerAuth: []

@@ -62,8 +62,8 @@ type PostApiPostsMultipartBody struct {
 	Image openapi_types.File `json:"image"`
 }
 
-// GetApiPostsUserUserIdParams defines parameters for GetApiPostsUserUserId.
-type GetApiPostsUserUserIdParams struct {
+// GetApiPostsByUserUserIdParams defines parameters for GetApiPostsByUserUserId.
+type GetApiPostsByUserUserIdParams struct {
 	// Cursor Cursor for pagination
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
 

@@ -151,7 +151,7 @@ func (h *Handler) DeleteApiPostsId(w http.ResponseWriter, r *http.Request, id in
 }
 
 // GetApiPostsUserUserId handles GET /api/posts/user/{userId}
-func (h *Handler) GetApiPostsUserUserId(w http.ResponseWriter, r *http.Request, userId int64, params genhttp.GetApiPostsUserUserIdParams) {
+func (h *Handler) GetApiPostsByUserUserId(w http.ResponseWriter, r *http.Request, userId int64, params genhttp.GetApiPostsByUserUserIdParams) {
 	cursor := ""
 	if params.Cursor != nil {
 		cursor = *params.Cursor
