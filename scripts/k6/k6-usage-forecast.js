@@ -245,7 +245,7 @@ export function createComment(data) {
   }
 
   // Now create comment on the target post
-  const url = `${BASE_URL}/api/posts/${targetPostId}/comments`;
+  const url = `${BASE_URL}/api/comments/by-post/${targetPostId}`;
   const payload = JSON.stringify({
     content: `k6 comment at ${new Date().toISOString()}`,
   });
@@ -274,6 +274,6 @@ export function listPosts(data) {
 
 export function listComments(data) {
   const pid = data?.postId || Number(POST_ID_FOR_COMMENTS);
-  const res = http.get(`${BASE_URL}/api/posts/${pid}/comments`);
+  const res = http.get(`${BASE_URL}/api/comments/by-post/${pid}`);
   check(res, { "list comments 200": (r) => r.status === 200 });
 }

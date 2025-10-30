@@ -84,8 +84,8 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 10,
+        "w": 24,
         "x": 0,
         "y": 0
       },
@@ -181,10 +181,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 0
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 10
       },
       "id": 2,
       "options": {
@@ -276,38 +276,13 @@
           },
           "unit": "short"
         },
-        "overrides": [
-          {
-            "__systemRef": "hideSeriesFrom",
-            "matcher": {
-              "id": "byNames",
-              "options": {
-                "mode": "exclude",
-                "names": [
-                  "{code=\"SUCCESS\", method=\"GET\", path=\"/api/posts\"}"
-                ],
-                "prefix": "All except:",
-                "readOnly": true
-              }
-            },
-            "properties": [
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "legend": false,
-                  "tooltip": true,
-                  "viz": true
-                }
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 24,
         "x": 0,
-        "y": 8
+        "y": 20
       },
       "id": 9,
       "options": {
@@ -360,10 +335,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 10,
+        "w": 24,
         "x": 0,
-        "y": 16
+        "y": 30
       },
       "id": 3,
       "options": {
@@ -460,10 +435,10 @@
         ]
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 16
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 40
       },
       "id": 4,
       "options": {
@@ -588,10 +563,10 @@
         ]
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 10,
+        "w": 24,
         "x": 0,
-        "y": 24
+        "y": 50
       },
       "id": 5,
       "options": {
@@ -698,10 +673,10 @@
         ]
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 24
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 60
       },
       "id": 6,
       "options": {
@@ -754,10 +729,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 10,
+        "w": 24,
         "x": 0,
-        "y": 32
+        "y": 70
       },
       "id": 7,
       "options": {
@@ -854,10 +829,10 @@
         ]
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 32
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 80
       },
       "id": 8,
       "options": {
@@ -898,326 +873,6 @@
               "_value": "Count",
               "operation": "Operation",
               "table": "Table"
-            }
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "P951FEA4DE68E13C5"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 50
-              },
-              {
-                "color": "orange",
-                "value": 100
-              },
-              {
-                "color": "red",
-                "value": 200
-              }
-            ]
-          },
-          "unit": "ms"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 8,
-        "x": 0,
-        "y": 40
-      },
-      "id": 10,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "mean"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "text": {},
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "12.2.1",
-      "targets": [
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "P951FEA4DE68E13C5"
-          },
-          "query": "from(bucket: \"metrics\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"http_request_duration_ms\")\n  |> filter(fn: (r) => r[\"group\"] == \"API_IN\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> mean()\n  |> yield(name: \"mean\")",
-          "refId": "A"
-        }
-      ],
-      "title": "Average API Latency",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "P951FEA4DE68E13C5"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 10
-              },
-              {
-                "color": "orange",
-                "value": 30
-              },
-              {
-                "color": "red",
-                "value": 50
-              }
-            ]
-          },
-          "unit": "ms"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 8,
-        "x": 8,
-        "y": 40
-      },
-      "id": 11,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "min"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "text": {},
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "12.2.1",
-      "targets": [
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "P951FEA4DE68E13C5"
-          },
-          "query": "from(bucket: \"metrics\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"http_request_duration_ms\")\n  |> filter(fn: (r) => r[\"group\"] == \"API_IN\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> min()\n  |> yield(name: \"min\")",
-          "refId": "A"
-        }
-      ],
-      "title": "Min API Latency",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "P951FEA4DE68E13C5"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 100
-              },
-              {
-                "color": "orange",
-                "value": 300
-              },
-              {
-                "color": "red",
-                "value": 500
-              }
-            ]
-          },
-          "unit": "ms"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 8,
-        "x": 16,
-        "y": 40
-      },
-      "id": 12,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "max"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "text": {},
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "12.2.1",
-      "targets": [
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "P951FEA4DE68E13C5"
-          },
-          "query": "from(bucket: \"metrics\")\n  |> range(start: -15m, stop: now())\n  |> filter(fn: (r) => r[\"_measurement\"] == \"http_request_duration_ms\")\n  |> filter(fn: (r) => r[\"group\"] == \"API_IN\")\n  |> filter(fn: (r) => r[\"_field\"] == \"value\")\n  |> max()\n  |> yield(name: \"max\")",
-          "refId": "A"
-        }
-      ],
-      "title": "Max API Latency",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "P951FEA4DE68E13C5"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "filterable": true,
-            "footer": {
-              "reducers": []
-            },
-            "inspect": false
-          },
-          "mappings": []
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byNames",
-              "options": [
-                "mean",
-                "min",
-                "max"
-              ]
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "ms"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 46
-      },
-      "id": 13,
-      "options": {
-        "cellHeight": "sm",
-        "showHeader": true,
-        "sortBy": [
-          {
-            "desc": true,
-            "displayName": "mean"
-          }
-        ]
-      },
-      "pluginVersion": "12.2.1",
-      "targets": [
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "P951FEA4DE68E13C5"
-          },
-          "query": "mean =\n  from(bucket: \"metrics\")\n    |> range(start: -15m, stop: now())\n    |> filter(fn: (r) => r[\"_measurement\"] == \"http_request_duration_ms\")\n    |> filter(fn: (r) => r[\"group\"] == \"API_IN\")\n    |> filter(fn: (r) => r[\"_field\"] == \"value\")\n    |> group(columns: [\"method\", \"path\"])\n    |> mean()\n    |> map(fn: (r) => ({ r with stat: \"mean\" }))\nmin =\n  from(bucket: \"metrics\")\n    |> range(start: -15m, stop: now())\n    |> filter(fn: (r) => r[\"_measurement\"] == \"http_request_duration_ms\")\n    |> filter(fn: (r) => r[\"group\"] == \"API_IN\")\n    |> filter(fn: (r) => r[\"_field\"] == \"value\")\n    |> group(columns: [\"method\", \"path\"])\n    |> min()\n    |> map(fn: (r) => ({ r with stat: \"min\" }))\nmax =\n  from(bucket: \"metrics\")\n    |> range(start: -15m, stop: now())\n    |> filter(fn: (r) => r[\"_measurement\"] == \"http_request_duration_ms\")\n    |> filter(fn: (r) => r[\"group\"] == \"API_IN\")\n    |> filter(fn: (r) => r[\"_field\"] == \"value\")\n    |> group(columns: [\"method\", \"path\"])\n    |> max()\n    |> map(fn: (r) => ({ r with stat: \"max\" }))\nunion(tables: [mean, min, max])\n  |> keep(columns: [\"method\", \"path\", \"stat\", \"_value\"])\n  |> pivot(rowKey: [\"method\", \"path\"], columnKey: [\"stat\"], valueColumn: \"_value\")\n  |> group(columns: [])\n  |> sort(columns: [\"mean\"], desc: true)\n  |> limit(n: 50)",
-          "refId": "A"
-        }
-      ],
-      "title": "API Latency per Path (Mean/Min/Max)",
-      "transformations": [
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "_field": true,
-              "_measurement": true,
-              "_start": true,
-              "_stop": true,
-              "_time": true
-            },
-            "indexByName": {},
-            "renameByName": {
-              "method": "Method",
-              "path": "API Path",
-              "mean": "Mean (ms)",
-              "min": "Min (ms)",
-              "max": "Max (ms)"
             }
           }
         }

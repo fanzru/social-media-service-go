@@ -2,7 +2,9 @@ package middleware
 
 import (
 	"net/http"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/fanzru/social-media-service-go/pkg/influxdb"
@@ -23,15 +25,17 @@ func InfluxDBMiddleware(influxClient *influxdb.Client) func(http.Handler) http.H
 			// Calculate duration
 			duration := time.Since(start)
 
-			// Extract entity from path
-			entity := extractEntity(r.URL.Path)
+			// Extract entity and normalize dynamic segments
+			rawPath := r.URL.Path
+			entity := extractEntity(rawPath)
+			normPath := normalizePath(rawPath)
 
 			// Record metrics to InfluxDB
 			if influxClient != nil {
 				tags := map[string]string{
 					"group":       "API_IN",
 					"entity":      entity,
-					"path":        r.URL.Path, // Full API path untuk tracking detail
+					"path":        normPath, // normalized: replace numeric/UUID segments with {id}
 					"method":      r.Method,
 					"http_status": strconv.Itoa(wrapper.statusCode),
 					"code":        getErrorCode(wrapper.statusCode),
@@ -77,6 +81,34 @@ func extractEntity(path string) string {
 	default:
 		return "unknown"
 	}
+}
+
+// normalizePath replaces path segments that look like IDs with {id}
+func normalizePath(p string) string {
+	if p == "" || p == "/" {
+		return p
+	}
+	// UUID matcher (case-insensitive)
+	uuidRe := regexp.MustCompile(`(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
+
+	parts := strings.Split(p, "/")
+	for i, seg := range parts {
+		if seg == "" { // leading slash yields empty segment
+			continue
+		}
+		// numeric id
+		if _, err := strconv.ParseInt(seg, 10, 64); err == nil {
+			parts[i] = "{id}"
+			continue
+		}
+		// uuid id
+		if uuidRe.MatchString(seg) {
+			parts[i] = "{id}"
+			continue
+		}
+	}
+	// Avoid duplicating slashes
+	return strings.ReplaceAll(strings.Join(parts, "/"), "//", "/")
 }
 
 // getErrorCode returns error code based on HTTP status
