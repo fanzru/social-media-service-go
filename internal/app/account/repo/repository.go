@@ -27,6 +27,20 @@ type Repository interface {
 	Update(ctx context.Context, acc *account.Account) error
 	Delete(ctx context.Context, id int64) error
 	SoftDelete(ctx context.Context, id int64) error
+	// ListUserPostImagePaths returns all image_path values for posts created by the user
+	ListUserPostImagePaths(ctx context.Context, userID int64) ([]string, error)
+	// Transactional helpers
+	BeginTx(ctx context.Context) (Tx, error)
+	ListUserPostImagePathsTx(ctx context.Context, tx Tx, userID int64) ([]string, error)
+	DeleteTx(ctx context.Context, tx Tx, id int64) error
+}
+
+// Tx abstracts a SQL transaction used by the repository
+type Tx interface {
+	Commit() error
+	Rollback() error
+	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
 }
 
 // repository implements the Repository interface
@@ -74,6 +88,34 @@ func (w *sqlDBWrapper) Exec(query string, args ...interface{}) (sql.Result, erro
 
 func (w *sqlDBWrapper) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
 	return w.db.ExecContext(ctx, query, args...)
+}
+
+// sqlTxWrapper adapts *sql.Tx to our Tx interface
+type sqlTxWrapper struct {
+	tx *sql.Tx
+}
+
+func (t *sqlTxWrapper) Commit() error   { return t.tx.Commit() }
+func (t *sqlTxWrapper) Rollback() error { return t.tx.Rollback() }
+func (t *sqlTxWrapper) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	return t.tx.ExecContext(ctx, query, args...)
+}
+func (t *sqlTxWrapper) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+	return t.tx.QueryContext(ctx, query, args...)
+}
+
+// sqlwrapTxAdapter adapts *sqlwrap.Tx to our Tx interface
+type sqlwrapTxAdapter struct {
+	tx *sqlwrap.Tx
+}
+
+func (t *sqlwrapTxAdapter) Commit() error   { return t.tx.Commit() }
+func (t *sqlwrapTxAdapter) Rollback() error { return t.tx.Rollback() }
+func (t *sqlwrapTxAdapter) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	return t.tx.ExecContext(ctx, query, args...)
+}
+func (t *sqlwrapTxAdapter) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+	return t.tx.QueryContext(ctx, query, args...)
 }
 
 // Create creates a new account in the database
@@ -230,4 +272,85 @@ func (r *repository) SoftDelete(ctx context.Context, id int64) error {
 	}
 
 	return nil
+}
+
+// ListUserPostImagePaths returns all image paths for posts created by the given user
+func (r *repository) ListUserPostImagePaths(ctx context.Context, userID int64) ([]string, error) {
+	query := `
+        SELECT image_path
+        FROM posts
+        WHERE creator_id = $1 AND deleted_at IS NULL`
+
+	rows, err := r.db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var imagePaths []string
+	for rows.Next() {
+		var path string
+		if err := rows.Scan(&path); err != nil {
+			return nil, err
+		}
+		if path != "" {
+			imagePaths = append(imagePaths, path)
+		}
+	}
+
+	return imagePaths, nil
+}
+
+// BeginTx starts a database transaction
+func (r *repository) BeginTx(ctx context.Context) (Tx, error) {
+	// Try sqlwrap.DB first
+	if db, ok := r.db.(*sqlwrap.DB); ok {
+		tx, err := db.BeginTx(ctx, nil)
+		if err != nil {
+			return nil, err
+		}
+		return &sqlwrapTxAdapter{tx: tx}, nil
+	}
+	// Fall back to raw *sql.DB via wrapper
+	if wrapper, ok := r.db.(*sqlDBWrapper); ok {
+		tx, err := wrapper.db.BeginTx(ctx, nil)
+		if err != nil {
+			return nil, err
+		}
+		return &sqlTxWrapper{tx: tx}, nil
+	}
+	return nil, sql.ErrConnDone
+}
+
+// ListUserPostImagePathsTx returns image paths using a transaction
+func (r *repository) ListUserPostImagePathsTx(ctx context.Context, tx Tx, userID int64) ([]string, error) {
+	query := `
+        SELECT image_path
+        FROM posts
+        WHERE creator_id = $1 AND deleted_at IS NULL`
+
+	rows, err := tx.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var imagePaths []string
+	for rows.Next() {
+		var path string
+		if err := rows.Scan(&path); err != nil {
+			return nil, err
+		}
+		if path != "" {
+			imagePaths = append(imagePaths, path)
+		}
+	}
+
+	return imagePaths, nil
+}
+
+// DeleteTx permanently deletes an account within a transaction
+func (r *repository) DeleteTx(ctx context.Context, tx Tx, id int64) error {
+	_, err := tx.ExecContext(ctx, `DELETE FROM accounts WHERE id = $1`, id)
+	return err
 }

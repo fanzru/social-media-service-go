@@ -15,6 +15,44 @@
     "http"
   ],
   "paths": {
+    "/api/account": {
+      "delete": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Account deleted successfully",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid credentials",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/StandardResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ],
+        "description": "Permanently delete the authenticated user's account and all associated resources (posts, images, comments). This action is irreversible.",
+        "summary": "Delete own account (GDPR)"
+      }
+    },
     "/api/account/login": {
       "post": {
         "consumes": [

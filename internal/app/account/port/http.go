@@ -37,6 +37,24 @@ func (h *Handler) GetApiAccountProfile(w http.ResponseWriter, r *http.Request) {
 	h.GetProfile(w, r)
 }
 
+// DeleteApiAccount implements genhttp.ServerInterface for DELETE /api/account
+func (h *Handler) DeleteApiAccount(w http.ResponseWriter, r *http.Request) {
+    ctx := r.Context()
+
+    userID, ok := middleware.GetUserID(ctx)
+    if !ok || userID == 0 {
+        response.Unauthorized(ctx, "User not authenticated", []string{}).Send(w, http.StatusUnauthorized)
+        return
+    }
+
+    if err := h.service.GDPRDeleteAccount(ctx, userID); err != nil {
+        response.InternalServerError(ctx, "Failed to delete account", []string{err.Error()}).Send(w, http.StatusInternalServerError)
+        return
+    }
+
+    response.Success(ctx, "Account deleted successfully", nil).Send(w, http.StatusOK)
+}
+
 // Register handles account registration
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()

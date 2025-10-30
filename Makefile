@@ -80,3 +80,87 @@ dev-setup: deps migrate-up
 # Production build
 prod-build:
 	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o bin/server cmd/server/main.go
+
+# Docker Compose commands
+docker-check-env:
+	@if [ ! -f .env ]; then \
+		echo "❌ Error: .env file not found!"; \
+		echo "💡 Creating .env from sample-env..."; \
+		cp sample-env .env; \
+		echo "✅ Please edit .env file with your configuration before running again."; \
+		exit 1; \
+	fi
+
+docker-up: docker-check-env
+	docker-compose up -d
+	@echo "✅ Services started!"
+	@echo "📊 Grafana: http://localhost:3000 (admin/admin123)"
+	@echo "🚀 App: http://localhost:8080"
+	@echo "📈 InfluxDB: http://localhost:8086 (admin/admin123)"
+
+docker-down:
+	docker-compose down
+
+docker-build: docker-check-env
+	docker-compose up -d --build
+	@echo "✅ Services built and started!"
+	@echo "📊 Grafana: http://localhost:3000 (admin/admin123)"
+	@echo "🚀 App: http://localhost:8080"
+	@echo "📈 InfluxDB: http://localhost:8086 (admin/admin123)"
+
+docker-logs:
+	docker-compose logs -f
+
+docker-logs-app:
+	docker-compose logs -f app
+
+docker-logs-monitor:
+	docker logs -f social-media-monitor
+
+docker-logs-influxdb:
+	docker logs -f social-media-influxdb
+
+docker-check-monitor:
+	@echo "📊 Checking monitor service status..."
+	@docker ps --filter "name=social-media-monitor" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+	@echo ""
+	@echo "📝 Recent monitor logs:"
+	@docker logs --tail 20 social-media-monitor || echo "Monitor container not running"
+
+docker-ps:
+	docker-compose ps
+
+docker-restart: docker-down docker-up
+
+# Start all services with monitoring
+start-all: docker-up
+	@echo "📝 Monitor logs: make docker-logs-monitor"
+
+# Build Docker image
+docker-build-image:
+	docker build -t social-media-app:latest -f Dockerfile .
+
+# Run Docker container with .env file (standalone, not with docker-compose)
+docker-run:
+	@if [ ! -f .env ]; then \
+		echo "❌ Error: .env file not found!"; \
+		echo "💡 Creating .env from sample-env..."; \
+		cp sample-env .env; \
+		echo "✅ Please edit .env file with your configuration before running again."; \
+		exit 1; \
+	fi
+	docker run -d \
+		--name social-media-app \
+		--env-file .env \
+		-e SERVER_HOST=0.0.0.0 \
+		-p 8080:8080 \
+		--restart unless-stopped \
+		social-media-app:latest
+	@echo "✅ Container started!"
+	@echo "🚀 App: http://localhost:8080"
+	@echo "📝 View logs: docker logs -f social-media-app"
+
+# Stop and remove standalone Docker container
+docker-stop:
+	docker stop social-media-app || true
+	docker rm social-media-app || true

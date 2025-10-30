@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   # InfluxDB untuk time-series database
   influxdb:
@@ -39,6 +37,29 @@ services:
     restart: unless-stopped
     depends_on:
       - influxdb
+
+  # Go Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: social-media-app
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      # Override specific values for Docker environment
+      - SERVER_HOST=0.0.0.0
+      - DB_HOST=host.docker.internal
+      - INFLUXDB_HOST=http://influxdb:8086
+    networks:
+      - app-network
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 networks:
   app-network:

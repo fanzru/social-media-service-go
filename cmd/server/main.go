@@ -74,7 +74,11 @@ func main() {
 	defer db.Close()
 
 	// Initialize InfluxDB client
-	influxClient, err := influxdb.NewClient("http://localhost:8086", "my-super-secret-auth-token", "social-media", "metrics")
+	influxHost := os.Getenv("INFLUXDB_HOST")
+	if influxHost == "" {
+		influxHost = "http://localhost:8086" // Default for local development
+	}
+	influxClient, err := influxdb.NewClient(influxHost, "my-super-secret-auth-token", "social-media", "metrics")
 	if err != nil {
 		log.Error("Failed to initialize InfluxDB client", "error", err.Error())
 		os.Exit(1)
@@ -93,19 +97,19 @@ func main() {
 	jwtService := jwt.NewService(cfg.JWT.Secret, time.Duration(cfg.JWT.Expiration)*time.Hour)
 	log.Info("JWT service initialized")
 
-	// Initialize account repository and service
-	accountRepository := repo.NewRepository(dbInterface)
-	log.Info("Account repository initialized")
+    // Initialize account repository and service
+    accountRepository := repo.NewRepository(dbInterface)
+    log.Info("Account repository initialized")
 
-	accountService := accountApp.NewService(accountRepository, jwtService)
-	log.Info("Account service initialized")
-
-	accountHandler := accountHTTP.NewHandler(accountService)
-	log.Info("Account HTTP handler initialized")
-
-	// Initialize image storage service
+    // Initialize image storage service
 	imageStorage := storage.NewImageStorageService(&cfg.Storage)
 	log.Info("Image storage service initialized")
+
+    accountService := accountApp.NewService(accountRepository, jwtService, imageStorage)
+    log.Info("Account service initialized")
+
+    accountHandler := accountHTTP.NewHandler(accountService)
+    log.Info("Account HTTP handler initialized")
 
 	// Initialize post repository and service
 	postRepository := postRepo.NewRepository(dbInterface)
@@ -148,6 +152,7 @@ func main() {
 
 	// Add security requirements manually for now
 	authMiddleware.AddSecurityRequirement("GET", "/api/account/profile", true)
+    authMiddleware.AddSecurityRequirement("DELETE", "/api/account", true)
 	authMiddleware.AddSecurityRequirement("GET", "/api/posts", false) // GET posts tidak perlu auth
 	authMiddleware.AddSecurityRequirement("POST", "/api/posts", true)
 	authMiddleware.AddSecurityRequirement("PUT", "/api/posts", true)

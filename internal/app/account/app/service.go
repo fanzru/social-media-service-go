@@ -18,19 +18,28 @@ type Service interface {
 	GetAccountByID(ctx context.Context, id int64) (*account.Account, error)
 	UpdateAccount(ctx context.Context, acc *account.Account) error
 	DeleteAccount(ctx context.Context, id int64) error
+	// GDPRDeleteAccount permanently deletes the account and all associated data
+	GDPRDeleteAccount(ctx context.Context, id int64) error
 }
 
 // service implements the Service interface
 type service struct {
 	repo       repo.Repository
 	jwtService *jwt.Service
+	imageStore ImageDeleter
+}
+
+// ImageDeleter defines the capability needed to delete images
+type ImageDeleter interface {
+	DeleteImage(imagePath string) error
 }
 
 // NewService creates a new account service
-func NewService(repo repo.Repository, jwtService *jwt.Service) Service {
+func NewService(repo repo.Repository, jwtService *jwt.Service, imageStore ImageDeleter) Service {
 	return &service{
 		repo:       repo,
 		jwtService: jwtService,
+		imageStore: imageStore,
 	}
 }
 
@@ -110,4 +119,43 @@ func (s *service) UpdateAccount(ctx context.Context, acc *account.Account) error
 // DeleteAccount soft deletes an account
 func (s *service) DeleteAccount(ctx context.Context, id int64) error {
 	return s.repo.SoftDelete(ctx, id)
+}
+
+// GDPRDeleteAccount permanently deletes an account and cleans up user images
+func (s *service) GDPRDeleteAccount(ctx context.Context, id int64) error {
+
+	var err error
+	// Begin DB transaction
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	// Gather image paths within the transaction scope
+	imagePaths, err := s.repo.ListUserPostImagePathsTx(ctx, tx, id)
+	if err != nil {
+		_ = tx.Rollback()
+		return fmt.Errorf("failed to list user's post images: %w", err)
+	}
+
+	// Try deleting images first; if any fails, rollback to keep DB unchanged
+	for _, path := range imagePaths {
+		if err := s.imageStore.DeleteImage(path); err != nil {
+			_ = tx.Rollback()
+			return fmt.Errorf("failed to delete image '%s': %w", path, err)
+		}
+	}
+
+	// Delete account within the same transaction (CASCADE removes posts/comments)
+	if err := s.repo.DeleteTx(ctx, tx, id); err != nil {
+		_ = tx.Rollback()
+		return fmt.Errorf("failed to delete account: %w", err)
+	}
+
+	// Commit
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
 }

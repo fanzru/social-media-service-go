@@ -116,6 +116,34 @@ paths:
               schema:
                 $ref: "#/components/schemas/StandardResponse"
 
+  /api/account:
+    delete:
+      security:
+        - bearerAuth: []
+      summary: Delete own account (GDPR)
+      description: Permanently delete the authenticated user's account and all associated resources (posts, images, comments). This action is irreversible.
+      tags:
+        - Account
+      responses:
+        "200":
+          description: Account deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+        "401":
+          description: Unauthorized - invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+
 components:
   securitySchemes:
     bearerAuth:

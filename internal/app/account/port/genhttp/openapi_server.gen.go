@@ -13,6 +13,9 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Delete own account (GDPR)
+	// (DELETE /api/account)
+	DeleteApiAccount(w http.ResponseWriter, r *http.Request)
 	// Login to account
 	// (POST /api/account/login)
 	PostApiAccountLogin(w http.ResponseWriter, r *http.Request)
@@ -32,6 +35,26 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// DeleteApiAccount operation middleware
+func (siw *ServerInterfaceWrapper) DeleteApiAccount(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteApiAccount(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
 
 // PostApiAccountLogin operation middleware
 func (siw *ServerInterfaceWrapper) PostApiAccountLogin(w http.ResponseWriter, r *http.Request) {
@@ -201,6 +224,7 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
+	m.HandleFunc("DELETE "+options.BaseURL+"/api/account", wrapper.DeleteApiAccount)
 	m.HandleFunc("POST "+options.BaseURL+"/api/account/login", wrapper.PostApiAccountLogin)
 	m.HandleFunc("GET "+options.BaseURL+"/api/account/profile", wrapper.GetApiAccountProfile)
 	m.HandleFunc("POST "+options.BaseURL+"/api/account/register", wrapper.PostApiAccountRegister)
