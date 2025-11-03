@@ -1,0 +1,29 @@
+name: Build and Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Registry
+        run: docker login registry.fanzru.dev -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and tag Docker image
+        run: docker build -t registry.fanzru.dev/social-media-service-go:latest .
+
+      - name: Push image to registry
+        run: docker push registry.fanzru.dev/social-media-service-go:latest
+
+      - name: Deploy to production via Portainer webhook
+        env:
+          PORTAINER_PRODUCTION_WEBHOOK_URL: ${{ secrets.PORTAINER_PRODUCTION_WEBHOOK_URL }}
+        run: |
+          curl -X POST "$PORTAINER_PRODUCTION_WEBHOOK_URL"

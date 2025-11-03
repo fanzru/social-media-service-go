@@ -2,6 +2,28 @@
 
 A Go-based social media service API with account management functionality.
 
+## Requirements
+
+- Functional
+  - Create posts with images
+  - Set text caption on post creation
+  - Comment on a post
+  - List all posts sorted by number of comments (desc)
+  - Provide last 2 comments per post in listings (design target)
+  - Cursor-based pagination for posts and comments
+  - GDPR delete: delete an account and all posts, images, and comments
+  - RESTful JSON API
+- Non-Functional
+  - Max image size: 100MB
+  - Allowed image formats: .png, .jpg, .bmp
+  - Save original image, also convert to .jpg and resize to 600x600; serve images as .jpg
+  - Max response time (except uploads): 50 ms
+  - Minimum throughput: 100 RPS
+  - Handle slow/unstable client connections
+- Usage Forecast
+  - ~1k images/hour uploaded
+  - ~100k comments/hour
+
 ## Features
 
 - ✅ Account registration and login
@@ -16,12 +38,18 @@ A Go-based social media service API with account management functionality.
 - ✅ Image upload with processing (resize + JPG), original retained
 - ✅ Posts listing sorted by comment count with cursor-based pagination
 
+Notes:
+
+- Posts endpoint exposes comment_count and stable cursors; returning the last 2 comments per post is supported in the design and can be added via lightweight join or follow-up calls.
+
 ## API Endpoints
 
 ### Account Management
 
 - `POST /api/account/register` - Register a new account
 - `POST /api/account/login` - Login to account
+- `GET /api/account/profile` - Get authenticated account profile
+- `DELETE /api/account` - GDPR delete self (deletes account, posts, images, comments)
 - `GET /health` - Health check endpoint
 
 ### Posts & Images
@@ -39,11 +67,27 @@ A Go-based social media service API with account management functionality.
     - API serves images only as `.jpg`
 
 - `GET /api/posts` - List posts sorted by number of comments (desc) with cursor-based pagination
+
   - Query params:
     - `cursor` (string, optional) — composite cursor encoding `comment_count|created_at` using URL-safe Base64
     - `limit` (int, optional, default 20, max 100)
   - Sort order: `comment_count DESC, created_at DESC`
   - Response includes `cursor` (next page token) and `has_more`
+
+- `GET /api/posts/by-user/{userId}` - List posts by user (cursor-based)
+- `GET /api/posts/{id}` - Get post by ID
+- `PUT /api/posts/{id}` - Update post (e.g., caption)
+- `DELETE /api/posts/{id}` - Delete a post (cascades comments, images)
+
+### Comments
+
+- `POST /api/comments/by-post/{postId}` - Create a comment on a post
+- `GET /api/comments/by-post/{postId}` - List comments on a post (cursor-based)
+  - Query params: `cursor`, `limit`
+- `GET /api/comments/{id}` - Get comment by ID
+- `PUT /api/comments/{id}` - Update a comment
+- `DELETE /api/comments/{id}` - Delete a comment
+- `GET /api/comments/user/{userId}` - List comments by user (cursor-based)
 
 ## Quick Start
 
@@ -148,6 +192,34 @@ All API responses follow this standardized format:
 └── scripts/             # Utility scripts
 ```
 
+## Domain Model
+
+- Account: `id`, `name`
+- Post: `id`, `caption`, `image`, `creator (account)`, `created_at`, `comments (list)`, `comment_count`
+- Comment: `id`, `content`, `creator (account)`, `created_at`
+
+## System Design (Concise)
+
+- API Layer: Go HTTP handlers generated from OpenAPI specs (`api/http/*.yaml`), standardized responses in `pkg/response` and request context in `pkg/reqctx`.
+- Auth: JWT middleware in `pkg/middleware/auth.go` with endpoint-specific security map.
+- Business Logic: Clean architecture modules under `internal/app/{account,post,comment}` with `app` (services), `repo` (data), and `port/http` (transport) layers.
+- Storage:
+  - Database: PostgreSQL for accounts, posts, comments. Cursor-based pagination uses stable composite cursors (e.g., `comment_count|created_at`) encoded URL-safe Base64.
+  - Images: Original uploaded file persisted and a processed `.jpg` (600x600, configurable quality) saved via `pkg/storage` and/or `pkg/s3` client. API serves `.jpg` URLs.
+- Observability:
+  - Metrics: StatsD and Prometheus metrics (`pkg/statsd`, `pkg/prometheus`), dashboards with Grafana (`grafana/`).
+  - Traces/Logs: Structured logging in `pkg/logger`; example Grafana plugins included.
+- Performance Targets:
+  - <50 ms p95 for non-upload APIs using prepared queries, indexes on `(comment_count desc, created_at desc)` materialized view or CTE, connection pooling.
+  - 100 RPS baseline with horizontal scaling behind a reverse proxy; image uploads use streaming and size limits.
+- Resilience:
+  - Idempotent handlers where relevant, input validation, timeouts, and safe deletion flow for GDPR (service method cascades delete of posts, images, comments).
+
+Implementation status:
+
+- Implemented: registration, login, profile, create/list posts, comments CRUD, cursor-based pagination, posts sorted by comment count, GDPR account delete, image processing and serving rules.
+- Design target: include last 2 comments in posts listing response (can be added with additional query/aggregation if needed).
+
 ## Configuration
 
 The application uses environment variables for configuration. See `sample-env` for all available options.
@@ -192,6 +264,17 @@ Notes:
 - Example flow:
   1. Call `GET /api/posts?limit=20`
   2. Use `cursor` from response for the next page: `GET /api/posts?cursor=<token>&limit=20`
+
+### Performance Guidance
+
+- Keep `limit` reasonably small (e.g., 20-50) for most endpoints to ensure <50 ms p95.
+- Use pagination for comments and avoid N+1 by batching fetches when enriching posts with last comments.
+
+## API Documentation (OpenAPI)
+
+- Source specs: `api/http/*.yaml`
+- Generated swagger docs: `docs/swagger/docs.json`
+- Regenerate: `./scripts/swaggerdocs.sh`
 
 ## Development
 
